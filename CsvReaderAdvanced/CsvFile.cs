@@ -34,14 +34,13 @@ public class CsvFile : ICsvFile
             return;
         }
 
-        using StreamReader reader = new StreamReader(path, Encoding.UTF8);
+        using StreamReader reader = new StreamReader(path, encoding);
         if (withHeader)
             Header = _reader.GetTokenizedLine(reader.ReadLine(), 1, 1, null, Separator!.Value);
 
         Lines = _reader.GetTokenizedLines(reader, Separator!.Value, startLineBeforeRead: withHeader ? 1 : 0).ToList();
 
-        if (withHeader)
-            PopulateColumns();
+        if (withHeader)  PopulateColumns();
     }
 
     #endregion
