@@ -55,7 +55,7 @@ The schema in the appsettings.json file typically contains a property named `csv
 We assume that we get the options via DI like the following example:
 
 ```cs
-public MyImporter(
+public Importer(
     IUnitOfWork context,
     IMapper mapper,
     IServiceProvider provider,
@@ -77,5 +77,26 @@ protected readonly CsvSchemaOptions _options;
 
 public CsvSchema? GetSchema(string name) =>
     _options?.Schemas?.FirstOrDefault(s => s.Name == name);
+
+public ValidationResult CheckForSchema(string name)
+{
+    if (_options?.Schemas is null || !_options.Schemas.Any())
+    {
+        _logger.LogError("Could not retrieve csv schemas from settings");
+        return new ValidationResult(
+            new ValidationFailure[] { new ValidationFailure("CsvSchemas", "Cannot retrieve csv schemas from settings") });
+    }
+
+    var schema = GetSchema(name);
+
+    if (schema is null)
+    {
+        _logger.LogError("Could not retrieve '{schemaName}' schema from settings",name);
+        return new ValidationResult(
+            new ValidationFailure[] { new ValidationFailure("clientSites", $"Cannot retrieve '{name}' schema from settings") });
+    }
+    return new ValidationResult();
+
+}
 ```
 
