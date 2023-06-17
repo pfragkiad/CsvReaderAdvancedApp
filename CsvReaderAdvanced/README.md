@@ -148,7 +148,7 @@ foreach (var line in file.Lines)
     //for strings we can immediately retrieve the token based on the field name
     string name = l.Tokens[c["ProductName"]];
 
-    var weightValue = l.GetDouble("Weight", c); //alternative call (slightly faster)
+    var weightValue = l.GetDouble("Weight", c);
     if (!weightValue.Parsed)
         _logger.LogError("Cannot parse Weight {value} at line {line}.", weightValue.Value, l.FromLine);
     else
