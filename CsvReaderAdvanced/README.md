@@ -12,6 +12,8 @@ First add the service to the ServiceCollection.
         ...
 ```
 
+
+## Csv schemas via appsettings.json
 To understand exactly what the method does, it assumes that the current configuration file contains a `csvSchemas` section, typically in the `appsettings.json` file:
 
 ```cs
@@ -32,11 +34,11 @@ The schema in the appsettings.json file typically contains a property named `csv
 "csvSchemas": {
     "schemas": [
       {
-        "name": "shipments",
+        "name": "products",
         "fields": [
           {
-            "name": "ClientShipmentID",
-            "alternatives": [ "Client Shipment ID", "Client shipmentid" ],
+            "name": "ProductID",
+            "alternatives": [ "Product ID" ],
             "required": true
           },
           {
@@ -48,7 +50,7 @@ The schema in the appsettings.json file typically contains a property named `csv
           {
             "name": "Volume",
             "unit": "m^3",
-            "alternativeUnits": [ "m3", "m^3", "m³" ]
+            "alternativeUnits": [ "m3", "m^3" ]
 ...
 ```
 
@@ -93,10 +95,35 @@ public ValidationResult CheckForSchema(string name)
     {
         _logger.LogError("Could not retrieve '{schemaName}' schema from settings",name);
         return new ValidationResult(
-            new ValidationFailure[] { new ValidationFailure("clientSites", $"Cannot retrieve '{name}' schema from settings") });
+            new ValidationFailure[] { new ValidationFailure(name, $"Cannot retrieve '{name}' schema from settings") });
     }
     return new ValidationResult();
 
 }
 ```
 
+## Read the file
+
+We instantiate a `CsvFile` in order to read the file. Note that the aforementioned `CsvSchema` is not needed if we do not have a header and/or do not want to validate the existence of fields.
+For the example below, we assume that a `CsvSchema` is checked.
+
+```cs
+//We assume that _provider is an IServiceProvider which is injected via DI
+var file = _provider.GetCsvFile();
+file.ReadFromFile(path, Encoding.UTF8, withHeader:true);
+
+//the line above is equivalent to the 2 commands:
+file.ReadFromFile(path, Encoding.UTF8);
+file.PopulateColumns();
+```
+
+The `PopulateColumns()` method updates the internal `ExistingColumns` dictionary. The `ExistingColumns` dictionary is case insensitive and stores the index location for each column. The index location is zero-based.
+To check the existence of fields against a schema we should call the `CheckAgainstSchema()` method as shown below:
+
+```cs
+CsvScema schema = _options.Schemas.FirstOrDefault(s => s.Name == "products");
+file.CheckAgainstSchema(schema);
+```
+
+The `CheckAgainstSchema()` method also calls the `PopulateColumns()` method if the `ExistingColumns` property is not populated. It then updates the `AllFieldColumns` property which is a dictionary of the column index location based on the field name. Non-existend fields will have a column value of -1.
+Two additional properties: `MissingFields` and `ExistingFields` return the names of the missing and non-missing fields correspondingly.
