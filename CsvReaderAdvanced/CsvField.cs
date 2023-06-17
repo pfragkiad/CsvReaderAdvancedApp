@@ -2,7 +2,7 @@
 
 public class CsvField
 {
-    public string Name { get; init; }
+    public string Name { get; init; } = default!;
 
     public bool Required { get; init; } = false;
 

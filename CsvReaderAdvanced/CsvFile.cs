@@ -4,9 +4,9 @@ using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CsvReaderAdvanced.Interfaces;
+namespace CsvReaderAdvanced;
 
-public class CsvFile : ICsvFile
+public class CsvFile : ICsvFile 
 {
     private readonly ILogger<CsvFile> _logger;
     private readonly ICsvReader _reader;
@@ -23,7 +23,7 @@ public class CsvFile : ICsvFile
 
     public TokenizedLine? Header { get; private set; }
 
-    public List<TokenizedLine?> Lines { get; private set; } = new();
+    public List<TokenizedLine?>? Lines { get; private set; }
 
     public void ReadFromFile(string path, Encoding encoding, bool withHeader = true)
     {
@@ -36,11 +36,11 @@ public class CsvFile : ICsvFile
 
         using StreamReader reader = new StreamReader(path, encoding);
         if (withHeader)
+        {
             Header = _reader.GetTokenizedLine(reader.ReadLine(), 1, 1, null, Separator!.Value);
-
+            PopulateColumns();
+        }
         Lines = _reader.GetTokenizedLines(reader, Separator!.Value, startLineBeforeRead: withHeader ? 1 : 0).ToList();
-
-        if (withHeader)  PopulateColumns();
     }
 
     #endregion
@@ -53,19 +53,22 @@ public class CsvFile : ICsvFile
     /// </summary>
     public Dictionary<string, int> ExistingColumns { get; private set; } = new();
 
-    /// <summary>
-    /// The dictionary is filled against a specific list of CsvFields via the PopulateFieldColumns method.
-    /// </summary>
-    public Dictionary<string, int> AllFieldColumns { get; private set; } = new();
-
-    public List<CsvField> MissingRequiredFields { get; private set; } = new();
 
     /// <summary>
-    /// The dictionary is filled against a specific list of CsvFields via the PopulateFieldColumns method. It contains only the missing fields.
+    /// Uses the field name as a key. Includes only the schema fields that exist in the file.
     /// </summary>
-    public List<string> MissingFieldNames => AllFieldColumns.Where(e => e.Value == -1).Select(e => e.Key).ToList();
+    public Dictionary<string, int> ExistingFieldColumns { get; private set; } = new();
 
-    public List<string> ExistingFieldNames => AllFieldColumns.Where(e => e.Value >= 0).Select(e => e.Key).ToList();
+    public HashSet<CsvField> MissingFields { get; private set; } = new();
+
+    public HashSet<CsvField> MissingRequiredFields { get; private set; } = new();
+
+    ///// <summary>
+    ///// The dictionary is filled against a specific list of CsvFields via the PopulateFieldColumns method. It contains only the missing fields.
+    ///// </summary>
+    //public List<string> MissingFieldNames => AllFieldColumns.Where(e => e.Value == -1).Select(e => e.Key).ToList();
+
+    //public List<string> ExistingFieldNames => AllFieldColumns.Where(e => e.Value >= 0).Select(e => e.Key).ToList();
 
 
 
@@ -74,7 +77,7 @@ public class CsvFile : ICsvFile
         _logger.LogDebug("Populating columns from header...");
 
         ExistingColumns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        if (Header.HasValue)
+        if (Header is not null)
         {
             ExistingColumns = Enumerable.Range(0, Header.Value.Tokens.Count).ToDictionary(i => Header.Value.Tokens[i], i => i, StringComparer.OrdinalIgnoreCase);
 
@@ -94,7 +97,10 @@ public class CsvFile : ICsvFile
             return;
         }
 
-        AllFieldColumns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        //AllFieldColumns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        ExistingFieldColumns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        MissingFields = new HashSet<CsvField>();
+        MissingRequiredFields = new HashSet<CsvField>();
         foreach (var f in schema.Fields)
         {
             bool found = false;
@@ -102,20 +108,21 @@ public class CsvFile : ICsvFile
             {
                 if (ExistingColumns.ContainsKey(n))
                 {
-                    AllFieldColumns.Add(f.Name, ExistingColumns[n]);
+                    //AllFieldColumns.Add(f.Name, ExistingColumns[n]);
+                    ExistingFieldColumns.Add(f.Name, ExistingColumns[n]);
                     found = true; break;
                 }
             }
-            if (!found) AllFieldColumns.Add(f.Name, -1);
+            if (!found)
+            {
+                MissingFields.Add(f);
+                if (f.Required) MissingRequiredFields.Add(f);
+
+                // AllFieldColumns.Add(f.Name, -1);
+            }
         }
 
-        //also populate the missing fields to simplify debugging
-        MissingRequiredFields = new List<CsvField>();
-        foreach (var f in MissingFieldNames)
-        {
-            var field = schema.Fields.FirstOrDefault(fld => fld.Name == f);
-            if (field!.Required) MissingRequiredFields.Add(field);
-        }
+
     }
 
     #endregion

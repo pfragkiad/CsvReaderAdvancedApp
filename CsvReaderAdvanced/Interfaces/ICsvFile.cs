@@ -1,19 +1,19 @@
 ﻿using System.Text;
 
-namespace CsvReaderAdvanced;
-
-public interface ICsvFile
+namespace CsvReaderAdvanced.Interfaces
 {
-    Dictionary<string, int> AllFieldColumns { get; }
-    Dictionary<string, int> ExistingColumns { get; }
-    List<string> ExistingFieldNames { get; }
-    TokenizedLine? Header { get; }
-    List<TokenizedLine?> Lines { get; }
-    List<string> MissingFieldNames { get; }
-    char? Separator { get; }
-    List<CsvField> MissingRequiredFields { get; }
+    public interface ICsvFile
+    {
+        Dictionary<string, int> ExistingColumns { get; }
+        Dictionary<string, int> ExistingFieldColumns { get; }
+        TokenizedLine? Header { get; }
+        List<TokenizedLine?>? Lines { get; }
+        HashSet<CsvField> MissingFields { get; }
+        HashSet<CsvField> MissingRequiredFields { get; }
+        char? Separator { get; }
 
-    void CheckAgainstSchema(CsvSchema schema);
-    void PopulateColumns();
-    void ReadFromFile(string path, Encoding encoding, bool withHeader = true);
+        void CheckAgainstSchema(CsvSchema schema);
+        void PopulateColumns();
+        void ReadFromFile(string path, Encoding encoding, bool withHeader = true);
+    }
 }

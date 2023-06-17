@@ -125,5 +125,7 @@ CsvScema schema = _options.Schemas.FirstOrDefault(s => s.Name == "products");
 file.CheckAgainstSchema(schema);
 ```
 
-The `CheckAgainstSchema()` method also calls the `PopulateColumns()` method if the `ExistingColumns` property is not populated. It then updates the `AllFieldColumns` property which is a dictionary of the column index location based on the field name. Non-existend fields will have a column value of -1.
-Three additional properties are populated: `MissingFieldNames`, `MissingRequiredFields` and `ExistingFieldNames`.
+The `CheckAgainstSchema()` method also calls the `PopulateColumns()` method if the `ExistingColumns` property is not populated. It then updates the `ExistingFieldColumns` dictionary, which is a dictionary of the column index location based on the field name.
+Additional properties (Hashsets) are populated: `MissingFields`, `MissingRequiredFields`.
+
+

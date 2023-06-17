@@ -88,7 +88,7 @@ public class CsvReader : ICsvReader
                 currentTokens = GetTokenizedLine(line, iStartLine, iLine, currentTokens, separator, quote, omitEmptyEntries);
             }
 
-            yield return currentTokens!.Value;
+            yield return currentTokens!;
         }
     }
 
