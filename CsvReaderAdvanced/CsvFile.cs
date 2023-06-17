@@ -58,12 +58,15 @@ public class CsvFile : ICsvFile
     /// </summary>
     public Dictionary<string, int> AllFieldColumns { get; private set; } = new();
 
+    public List<CsvField> MissingRequiredFields { get; private set; } = new();
+
     /// <summary>
     /// The dictionary is filled against a specific list of CsvFields via the PopulateFieldColumns method. It contains only the missing fields.
     /// </summary>
-    public List<string> MissingFields => AllFieldColumns.Where(e => e.Value == -1).Select(e => e.Key).ToList();
+    public List<string> MissingFieldNames => AllFieldColumns.Where(e => e.Value == -1).Select(e => e.Key).ToList();
 
-    public List<string> ExistingFields => AllFieldColumns.Where(e => e.Value >= 0).Select(e => e.Key).ToList();
+    public List<string> ExistingFieldNames => AllFieldColumns.Where(e => e.Value >= 0).Select(e => e.Key).ToList();
+
 
 
     public void PopulateColumns()
@@ -106,6 +109,13 @@ public class CsvFile : ICsvFile
             if (!found) AllFieldColumns.Add(f.Name, -1);
         }
 
+        //also populate the missing fields to simplify debugging
+        MissingRequiredFields = new List<CsvField>();
+        foreach (var f in MissingFieldNames)
+        {
+            var field = schema.Fields.FirstOrDefault(fld => fld.Name == f);
+            if (field!.Required) MissingRequiredFields.Add(field);
+        }
     }
 
     #endregion
