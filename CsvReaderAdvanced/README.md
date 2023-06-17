@@ -128,4 +128,28 @@ file.CheckAgainstSchema(schema);
 The `CheckAgainstSchema()` method also calls the `PopulateColumns()` method if the `ExistingColumns` property is not populated. It then updates the `ExistingFieldColumns` dictionary, which is a dictionary of the column index location based on the field name.
 Additional properties (Hashsets) are populated: `MissingFields`, `MissingRequiredFields`.
 
+## Lines and ParsedValue
+
+The most important updated property after the `ReadFromFile()` call is the `Lines` property, whic is a List of `TokenizedLine?` objects.
+The `TokenizedLine` struct contains the `Tokens` property which is a List of `string` objects. The power of this library is that each `TokenizedLine` may potentially span more than 1 lines. This can occur in the case of quoted strings which may span to the next line. In general all cases where quoted strings are met, are cases where a simple `string.Split()` cannot work.
+That's why the properties `FromLine` to `ToLine` exist. The latter are important for debugging purposes.
+The `Get` method returns a `ParsedValue` struct. The `ParsedValue` is a useful wrapper the contains a `T? Value` and a `bool Parsed` property.
+
+```cs
+var c = file.ExistingFieldColumns;
+
+foreach (var line in file.Lines)
+{
+    TokenizedLine l = line.Value;
+    var weightValue = l.Get<double>("Weight", c);
+    //var weightValue = l.GetDouble("Weight", c); //alternative call
+    if (!weightValue.Parsed)
+        _logger.LogError("Cannot parse Weight {value} at line {line}.", weightValue.Value, l.FromLine);
+    else
+    {
+        double weight = weightValue.Value;
+    ...
+...
+```
+
 
