@@ -25,90 +25,90 @@ public struct TokenizedLine
 
     static readonly CultureInfo _en = CultureInfo.InvariantCulture;
     //public object? GetValue<T>(string f, Dictionary<string,int> columns, string? format= null, CultureInfo? info = null) where T : struct
-    public readonly ParsedValue<T> Get<T>(string fieldName, Dictionary<string, int> columns, string? format = null, CultureInfo? info = null)
-    {
-        info ??= _en;
-        string sValue = Tokens[columns[fieldName]];
-        if (sValue == "") return ParsedValue<T>.Null;
+    //public readonly ParsedValue<T> Get<T>(string fieldName, Dictionary<string, int> columns, string? format = null, CultureInfo? info = null)
+    //{
+    //    info ??= _en;
+    //    string sValue = Tokens[columns[fieldName]];
+    //    if (sValue == "") return ParsedValue<T>.Null;
 
-        if (typeof(T) == typeof(string))
-            //return sValue;
-            return new ParsedValue<T>(sValue);
+    //    if (typeof(T) == typeof(string))
+    //        //return sValue;
+    //        return new ParsedValue<T>(sValue);
 
-        if (typeof(T) == typeof(double))
-        {
-            bool parsed = double.TryParse(sValue, info, out var doubleValue);
-            return parsed ? new ParsedValue<T>(doubleValue) : ParsedValue<T>.Unparsable;
-            //return parsed ? doubleValue : Unparsable.Default;
+    //    if (typeof(T) == typeof(double))
+    //    {
+    //        bool parsed = double.TryParse(sValue, info, out var doubleValue);
+    //        return parsed ? new ParsedValue<T>(doubleValue) : ParsedValue<T>.Unparsable;
+    //        //return parsed ? doubleValue : Unparsable.Default;
 
-        }
-        if (typeof(T) == typeof(int))
-        {
-            bool parsed = int.TryParse(sValue, info, out int intValue);
-            return parsed ? new ParsedValue<T>(intValue) : ParsedValue<T>.Unparsable;
-            //return parsed ? intValue : Unparsable.Default;
-        }
-        if (typeof(T) == typeof(float))
-        {
-            bool parsed = float.TryParse(sValue, info, out var floatValue);
-            return parsed ? new ParsedValue<T>(floatValue) : ParsedValue<T>.Unparsable;
-            //return parsed ? floatValue : Unparsable.Default;
-        }
+    //    }
+    //    if (typeof(T) == typeof(int))
+    //    {
+    //        bool parsed = int.TryParse(sValue, info, out int intValue);
+    //        return parsed ? new ParsedValue<T>(intValue) : ParsedValue<T>.Unparsable;
+    //        //return parsed ? intValue : Unparsable.Default;
+    //    }
+    //    if (typeof(T) == typeof(float))
+    //    {
+    //        bool parsed = float.TryParse(sValue, info, out var floatValue);
+    //        return parsed ? new ParsedValue<T>(floatValue) : ParsedValue<T>.Unparsable;
+    //        //return parsed ? floatValue : Unparsable.Default;
+    //    }
 
-        if (typeof(T) == typeof(bool))
-        {
-            sValue = sValue.ToLower();
-            bool isTrue = sValue == "yes" || sValue == "true" || sValue == "1" || sValue == "-1" || sValue == "oui";
-            bool isFalse = sValue == "no" || sValue == "false" || sValue == "0" || sValue == "non";
-            if (isTrue) return new ParsedValue<T>(true); //true;
-            if (isFalse) return new ParsedValue<T>(false);// false;
-            return ParsedValue<T>.Unparsable; //Unparsable.Default;
-        }
+    //    if (typeof(T) == typeof(bool))
+    //    {
+    //        sValue = sValue.ToLower();
+    //        bool isTrue = sValue == "yes" || sValue == "true" || sValue == "1" || sValue == "-1" || sValue == "oui";
+    //        bool isFalse = sValue == "no" || sValue == "false" || sValue == "0" || sValue == "non";
+    //        if (isTrue) return new ParsedValue<T>(true); //true;
+    //        if (isFalse) return new ParsedValue<T>(false);// false;
+    //        return ParsedValue<T>.Unparsable; //Unparsable.Default;
+    //    }
 
-        if (typeof(T) == typeof(DateTimeOffset))
-        {
-            //sValue = sValue.Replace("/", "-");
-            DateTimeOffset dateTimeOffsetValue;
-            bool parsed =
-                format is not null ?
-                DateTimeOffset.TryParseExact(sValue, format, info, DateTimeStyles.None, out dateTimeOffsetValue) :
-                DateTimeOffset.TryParse(sValue, info, out dateTimeOffsetValue);
-            return parsed ? new ParsedValue<T>(dateTimeOffsetValue) : ParsedValue<T>.Unparsable;
-            //return parsed ? dateTimeOffsetValue : Unparsable.Default;
-        }
+    //    if (typeof(T) == typeof(DateTimeOffset))
+    //    {
+    //        //sValue = sValue.Replace("/", "-");
+    //        DateTimeOffset dateTimeOffsetValue;
+    //        bool parsed =
+    //            format is not null ?
+    //            DateTimeOffset.TryParseExact(sValue, format, info, DateTimeStyles.None, out dateTimeOffsetValue) :
+    //            DateTimeOffset.TryParse(sValue, info, out dateTimeOffsetValue);
+    //        return parsed ? new ParsedValue<T>(dateTimeOffsetValue) : ParsedValue<T>.Unparsable;
+    //        //return parsed ? dateTimeOffsetValue : Unparsable.Default;
+    //    }
 
-        if (typeof(T) == typeof(DateTime))
-        {
-            DateTime dateTimeValue;
-            bool parsed =
-                format is not null ?
-                DateTime.TryParseExact(sValue, format, info, DateTimeStyles.None, out dateTimeValue) :
-                DateTime.TryParse(sValue, info, out dateTimeValue);
-            //return parsed ? dateTimeValue : Unparsable.Default;
-            return parsed ? new ParsedValue<T>(dateTimeValue) : ParsedValue<T>.Unparsable;
-        }
+    //    if (typeof(T) == typeof(DateTime))
+    //    {
+    //        DateTime dateTimeValue;
+    //        bool parsed =
+    //            format is not null ?
+    //            DateTime.TryParseExact(sValue, format, info, DateTimeStyles.None, out dateTimeValue) :
+    //            DateTime.TryParse(sValue, info, out dateTimeValue);
+    //        //return parsed ? dateTimeValue : Unparsable.Default;
+    //        return parsed ? new ParsedValue<T>(dateTimeValue) : ParsedValue<T>.Unparsable;
+    //    }
 
-        if (typeof(T) == typeof(decimal))
-        {
-            bool parsed = decimal.TryParse(sValue, info, out var decimalValue);
-            return parsed ? new ParsedValue<T>(decimalValue) : ParsedValue<T>.Unparsable;
-            //return parsed ? decimalValue : Unparsable.Default;
-        }
+    //    if (typeof(T) == typeof(decimal))
+    //    {
+    //        bool parsed = decimal.TryParse(sValue, info, out var decimalValue);
+    //        return parsed ? new ParsedValue<T>(decimalValue) : ParsedValue<T>.Unparsable;
+    //        //return parsed ? decimalValue : Unparsable.Default;
+    //    }
 
-        if (typeof(T) == typeof(long))
-        {
-            bool parsed = long.TryParse(sValue, info, out long longValue);
-            return parsed ? new ParsedValue<T>(longValue) : ParsedValue<T>.Unparsable;
-            //return parsed ? intValue : Unparsable.Default;
-        }
-        if (typeof(T) == typeof(byte))
-        {
-            bool parsed = byte.TryParse(sValue, info, out byte byteValue);
-            return parsed ? new ParsedValue<T>(byteValue) : ParsedValue<T>.Unparsable;
-            //return parsed ? intValue : Unparsable.Default;
-        }
-        return ParsedValue<T>.Unparsable;
-    }
+    //    if (typeof(T) == typeof(long))
+    //    {
+    //        bool parsed = long.TryParse(sValue, info, out long longValue);
+    //        return parsed ? new ParsedValue<T>(longValue) : ParsedValue<T>.Unparsable;
+    //        //return parsed ? intValue : Unparsable.Default;
+    //    }
+    //    if (typeof(T) == typeof(byte))
+    //    {
+    //        bool parsed = byte.TryParse(sValue, info, out byte byteValue);
+    //        return parsed ? new ParsedValue<T>(byteValue) : ParsedValue<T>.Unparsable;
+    //        //return parsed ? intValue : Unparsable.Default;
+    //    }
+    //    return ParsedValue<T>.Unparsable;
+    //}
 
     public readonly ParsedValue<double> GetDouble(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
     {

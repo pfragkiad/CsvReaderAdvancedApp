@@ -2,28 +2,27 @@
 
 //public struct Unparsable { public static Unparsable Default = new Unparsable(); }
 
-public struct ParsedValue<T> //where T:IConvertible
+public readonly struct ParsedValue<T> 
 {
-    public T? Value { get; init; }
+    //T? is not allowed as a value here
+    public T Value { get; init; }
 
-    public bool Parsed { get; init; }
+    public bool IsParsed { get; init; }
 
-    /// <summary>
-    /// Returns true if a true empty value is read, i.e.an empty string in the input file.
-    /// </summary>
-    public bool HasNullValue => Value is null && Parsed;
+    public bool IsNull { get; init; }
 
-    public ParsedValue(object? value) { Value = (T?)value; Parsed = true; }
+    public ParsedValue(T value)
+    {
+        Value = value; IsParsed = true; IsNull=false;
+    }
 
-    public ParsedValue() { Value = default(T?); Parsed = false; }
+    public static readonly ParsedValue<T> Unparsable = new ParsedValue<T>() {IsNull=false,IsParsed=false, Value = default };
 
-    public static readonly ParsedValue<T> Unparsable = new ParsedValue<T>();
-
-    public static readonly ParsedValue<T> Null = new ParsedValue<T>(null);
+    public static readonly ParsedValue<T> Null = new ParsedValue<T>() { IsNull = true, IsParsed = true, Value=default};
 
     public override string ToString()
     {
-        return $"{Value} ({(Parsed?"parsed":"cannot parse")})";
+        return $"{Value} ({(IsParsed ? "parsed" : "cannot parse")})";
     }
 }
 

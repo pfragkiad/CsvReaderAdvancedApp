@@ -133,16 +133,22 @@ Additional properties (Hashsets) are populated: `MissingFields`, `MissingRequire
 The most important updated property after the `ReadFromFile()` call is the `Lines` property, whic is a List of `TokenizedLine?` objects.
 The `TokenizedLine` struct contains the `Tokens` property which is a List of `string` objects. The power of this library is that each `TokenizedLine` may potentially span more than 1 lines. This can occur in the case of quoted strings which may span to the next line. In general all cases where quoted strings are met, are cases where a simple `string.Split()` cannot work.
 That's why the properties `FromLine` to `ToLine` exist. The latter are important for debugging purposes.
-The `Get` method returns a `ParsedValue` struct. The `ParsedValue` is a useful wrapper the contains a `T? Value` and a `bool Parsed` property.
+The `GetDouble`/`GetFloat`/`GetString`/`GetInt`/`GetByte`/`GetLong`/`GetDateTime`/`GetDateTimeOffset` methods return a `ParsedValue<T>` struct. The `ParsedValue` is a useful wrapper the contains a `Value`, a `IsParsed` and a `IsNull` property.
 
 ```cs
 var c = file.ExistingFieldColumns;
 
+//we can use the following instead, in case we want to use the original field names within the header the CSV file
+//var c = file.ExistingColumns;
+
 foreach (var line in file.Lines)
 {
     TokenizedLine l = line.Value;
-    var weightValue = l.Get<double>("Weight", c);
-    //var weightValue = l.GetDouble("Weight", c); //alternative call
+    
+    //for strings we can immediately retrieve the token based on the field name
+    string name = l.Tokens[c["ProductName"]];
+
+    var weightValue = l.GetDouble("Weight", c); //alternative call (slightly faster)
     if (!weightValue.Parsed)
         _logger.LogError("Cannot parse Weight {value} at line {line}.", weightValue.Value, l.FromLine);
     else
