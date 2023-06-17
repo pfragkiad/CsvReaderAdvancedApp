@@ -14,7 +14,7 @@ public class CsvField
 
     public string[] AlternativeUnits { get; init; } = Array.Empty<string>();
 
-    public IEnumerable<string> GetCandidateNames()
+    public HashSet<string> GetCandidateNames()
     {
         var allNames = Alternatives.Concat(Alternatives.Select(a => a.Replace(" ", ""))).ToList();
         allNames.Add(Name);
@@ -24,17 +24,20 @@ public class CsvField
         if (!string.IsNullOrWhiteSpace(Unit)) allUnits.Add(Unit);
         allUnits = allUnits.Distinct().ToList();
 
+        HashSet<string> candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (string n in allNames)
         {
-            yield return n;
+            candidates.Add(n);
             foreach (string u in allUnits)
             {
-                yield return $"{n} {u}";
-                yield return $"{n} ({u})";
-                yield return $"{n} [{u}]";
-                yield return $"{n}_{u}";
+                candidates.Add($"{n} {u}");
+                candidates.Add($"{n} ({u})");
+                candidates.Add($"{n} [{u}]");
+                candidates.Add($"{n}_{u}");
             }
         }
+
+        return candidates;
     }
 
     public override string ToString() => Name;
