@@ -31,7 +31,7 @@ public class CsvReader : ICsvReader
 
     //public void Tests()
     //{
-    //    string path = "d:\\Desktop\\HAGERO_FY2022_api_address.csv"; // "D:\\repos\\pfragkiad\\glec\\CsvReaderAdvanced\\samples\\hard2.csv";
+    //    string path = "d:\\Desktop\\tests_api_address.csv"; // "D:\\repos\\pfragkiad\\forw\\CsvReaderAdvanced\\samples\\hard2.csv";
 
 
     //    //char? separator = ReadSeparator(path,Encoding.UTF8);
