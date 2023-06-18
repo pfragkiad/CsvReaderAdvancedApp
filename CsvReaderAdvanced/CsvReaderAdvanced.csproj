@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.23</Version>
+    <Version>1.0.25</Version>
     <Authors>Pavlos Fragkiadoulakis</Authors>
     <Company>Pavlos Fragkiadoulakis</Company>
     <Description>Advanced CSV reader, adapted to multi-line records and quoted tokens. Allows the use of schema. See README.</Description>

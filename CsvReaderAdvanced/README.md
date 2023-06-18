@@ -8,12 +8,12 @@ Combine the power of the configuration JSON files with customized CSV reading.
 
 Via tha Package Manager:
 ```powershell
-Install-Package CsvReaderAdvanced -Version 1.0.23
+Install-Package CsvReaderAdvanced -Version 1.0.25
 ```
 
 Via the .NET CLI
 ```bat
-dotnet add package CsvReaderAdvanced --version 1.0.23
+dotnet add package CsvReaderAdvanced --version 1.0.25
 ```
 
 ## How to use

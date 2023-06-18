@@ -115,14 +115,14 @@ public struct TokenizedLine
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<bool>.Null;
 
-        sValue = sValue.ToLower();
+        string sValueLower = sValue.ToLower();
 
-        bool isTrue = sValue == "yes" || sValue == "true" || sValue == "1" || sValue == "-1" || sValue == "oui";
-        bool isFalse = sValue == "no" || sValue == "false" || sValue == "0" || sValue == "non";
-
-        if (isTrue) return new ParsedValue<bool>(true); //true;
-        if (isFalse) return new ParsedValue<bool>(false);// false;
-        return ParsedValue<bool>.Unparsable; //Unparsable.Default;
+        bool isTrue = sValueLower == "yes" || sValueLower == "true" || sValueLower == "1" || sValueLower == "-1" || sValueLower == "oui";
+        bool isFalse = sValueLower == "no" || sValueLower == "false" || sValueLower == "0" || sValueLower == "non";
+        
+        if (isTrue) return new ParsedValue<bool>(true, sValue); //true;
+        if (isFalse) return new ParsedValue<bool>(false, sValue);// false;
+        return ParsedValue<bool>.Unparsable(sValue); //Unparsable.Default;
     }
 
     public readonly ParsedValue<double> GetDouble(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
@@ -131,7 +131,7 @@ public struct TokenizedLine
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<double>.Null;
         bool parsed = double.TryParse(sValue, info, out var doubleValue);
-        return parsed ? new ParsedValue<double>(doubleValue) : ParsedValue<double>.Unparsable;
+        return parsed ? new ParsedValue<double>(doubleValue, sValue) : ParsedValue<double>.Unparsable(sValue);
     }
 
 
@@ -141,14 +141,14 @@ public struct TokenizedLine
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<float>.Null;
         bool parsed = float.TryParse(sValue, info, out var floatValue);
-        return parsed ? new ParsedValue<float>(floatValue) : ParsedValue<float>.Unparsable;
+        return parsed ? new ParsedValue<float>(floatValue,sValue) : ParsedValue<float>.Unparsable(sValue);
     }
 
     public readonly ParsedValue<string> GetString(string fieldName, Dictionary<string, int> columns)
     {
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<string>.Null;
-        return new ParsedValue<string>(sValue);
+        return new ParsedValue<string>(sValue,sValue);
     }
 
     public readonly ParsedValue<int> GetInt(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
@@ -157,7 +157,7 @@ public struct TokenizedLine
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<int>.Null;
         bool parsed = int.TryParse(sValue, info, out int intValue);
-        return parsed ? new ParsedValue<int>(intValue) : ParsedValue<int>.Unparsable;
+        return parsed ? new ParsedValue<int>(intValue,sValue) : ParsedValue<int>.Unparsable(sValue);
     }
 
     public readonly ParsedValue<byte> GetByte(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
@@ -166,7 +166,7 @@ public struct TokenizedLine
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<byte>.Null;
         bool parsed = byte.TryParse(sValue, info, out byte byteValue);
-        return parsed ? new ParsedValue<byte>(byteValue) : ParsedValue<byte>.Unparsable;
+        return parsed ? new ParsedValue<byte>(byteValue, sValue) : ParsedValue<byte>.Unparsable(sValue);
     }
 
     public readonly ParsedValue<long> GetLong(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
@@ -175,7 +175,7 @@ public struct TokenizedLine
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<long>.Null;
         bool parsed = long.TryParse(sValue, info, out long longValue);
-        return parsed ? new ParsedValue<long>(longValue) : ParsedValue<long>.Unparsable;
+        return parsed ? new ParsedValue<long>(longValue, sValue) : ParsedValue<long>.Unparsable(sValue);
     }
 
     public readonly ParsedValue<decimal> GetDecimal(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
@@ -184,7 +184,7 @@ public struct TokenizedLine
         string sValue = Tokens[columns[fieldName]];
         if (sValue == "") return ParsedValue<decimal>.Null;
         bool parsed = decimal.TryParse(sValue, info, out decimal decimalValue);
-        return parsed ? new ParsedValue<decimal>(decimalValue) : ParsedValue<decimal>.Unparsable;
+        return parsed ? new ParsedValue<decimal>(decimalValue, sValue) : ParsedValue<decimal>.Unparsable(sValue);
     }
 
     public readonly ParsedValue<DateTime> GetDateTime(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, string? format = null)
@@ -199,7 +199,7 @@ public struct TokenizedLine
             DateTime.TryParseExact(sValue, format, info, DateTimeStyles.None, out dateTimeValue) :
             DateTime.TryParse(sValue, info, out dateTimeValue);
         //return parsed ? dateTimeValue : Unparsable.Default;
-        return parsed ? new ParsedValue<DateTime>(dateTimeValue) : ParsedValue<DateTime>.Unparsable;
+        return parsed ? new ParsedValue<DateTime>(dateTimeValue, sValue) : ParsedValue<DateTime>.Unparsable(sValue);
     }
 
     public readonly ParsedValue<DateTimeOffset> GetDateTimeOffset(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, string? format = null)
@@ -214,7 +214,7 @@ public struct TokenizedLine
             DateTimeOffset.TryParseExact(sValue, format, info, DateTimeStyles.None, out dateTimeValue) :
             DateTimeOffset.TryParse(sValue, info, out dateTimeValue);
         //return parsed ? dateTimeValue : Unparsable.Default;
-        return parsed ? new ParsedValue<DateTimeOffset>(dateTimeValue) : ParsedValue<DateTimeOffset>.Unparsable;
+        return parsed ? new ParsedValue<DateTimeOffset>(dateTimeValue, sValue) : ParsedValue<DateTimeOffset>.Unparsable(sValue);
     }
     #endregion
 
