@@ -110,6 +110,21 @@ public struct TokenizedLine
     //    return ParsedValue<T>.Unparsable;
     //}
 
+    public readonly ParsedValue<bool> GetBool(string fieldName, Dictionary<string, int> columns)
+    {
+        string sValue = Tokens[columns[fieldName]];
+        if (sValue == "") return ParsedValue<bool>.Null;
+
+        sValue = sValue.ToLower();
+
+        bool isTrue = sValue == "yes" || sValue == "true" || sValue == "1" || sValue == "-1" || sValue == "oui";
+        bool isFalse = sValue == "no" || sValue == "false" || sValue == "0" || sValue == "non";
+
+        if (isTrue) return new ParsedValue<bool>(true); //true;
+        if (isFalse) return new ParsedValue<bool>(false);// false;
+        return ParsedValue<bool>.Unparsable; //Unparsable.Default;
+    }
+
     public readonly ParsedValue<double> GetDouble(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
     {
         info ??= _en;

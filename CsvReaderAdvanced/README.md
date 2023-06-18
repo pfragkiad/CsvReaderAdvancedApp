@@ -1,6 +1,20 @@
 # CsvReaderAdvanced
 
-The faster and most modern CSV reader adapted to DI principles.
+*The faster and most modern CSV reader adapted to DI principles.*
+
+Combine the power of the configuration JSON files with customized CSV reading. 
+
+## How to install
+
+Via tha Package Manager:
+```powershell
+Install-Package CsvReaderAdvanced -Version 1.0.23
+```
+
+Via the .NET CLI
+```bat
+dotnet add package CsvReaderAdvanced --version 1.0.23
+```
 
 ## How to use
 
@@ -14,6 +28,7 @@ First add the service to the ServiceCollection.
 
 
 ## Csv schemas via appsettings.json
+
 To understand exactly what the method does, it assumes that the current configuration file contains a `csvSchemas` section, typically in the `appsettings.json` file:
 
 ```cs
@@ -158,4 +173,4 @@ foreach (var line in file.Lines)
 ...
 ```
 
-
+> IS THAT ALL? Of course not. More examples are pending. The library is more powerful than it seems!
