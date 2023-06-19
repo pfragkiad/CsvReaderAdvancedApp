@@ -1,0 +1,27 @@
+{
+  "csvSchemas": {
+    "schemas": [
+      {
+        "name": "products",
+        "fields": [
+          {
+            "name": "ProductID",
+            "alternatives": [ "Client Product ID", "Product ID" ],
+            "required": true
+          },
+          {
+            "name": "Weight",
+            "unit": "t",
+            "alternativeFields": [ "Volume", "TEU" ],
+            "required": true
+          },
+          {
+            "name": "Volume",
+            "unit": "m^3",
+            "alternativeUnits": [ "m3", "m^3" ]
+          }
+        ]
+      }
+    ]
+  }
+}
