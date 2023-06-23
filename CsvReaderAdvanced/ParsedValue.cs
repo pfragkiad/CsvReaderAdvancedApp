@@ -1,4 +1,6 @@
-﻿namespace CsvReaderAdvanced;
+﻿using System.Runtime.CompilerServices;
+
+namespace CsvReaderAdvanced;
 
 //public struct Unparsable { public static Unparsable Default = new Unparsable(); }
 
@@ -12,6 +14,11 @@ public readonly struct ParsedValue<T>
     public bool IsParsed { get; init; }
 
     public bool IsNull { get; init; }
+
+    public static implicit operator T?(ParsedValue<T> value) 
+    {
+        return value.IsNull ? default : value.Value;
+    }
 
     public ParsedValue(T value, string stringValue)
     {
