@@ -144,12 +144,12 @@ public struct TokenizedLine
         return parsed ? new ParsedValue<float>(floatValue,sValue) : ParsedValue<float>.Unparsable(sValue);
     }
 
-    public readonly ParsedValue<string> GetString(string fieldName, Dictionary<string, int> columns)
-    {
-        string sValue = Tokens[columns[fieldName]];
-        if (sValue == "") return ParsedValue<string>.Null;
-        return new ParsedValue<string>(sValue,sValue);
-    }
+    //public readonly ParsedValue<string> GetString(string fieldName, Dictionary<string, int> columns)
+    //{
+    //    string sValue = Tokens[columns[fieldName]];
+    //    if (sValue == "") return ParsedValue<string>.Null;
+    //    return new ParsedValue<string>(sValue,sValue);
+    //}
 
     public readonly ParsedValue<int> GetInt(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
     {

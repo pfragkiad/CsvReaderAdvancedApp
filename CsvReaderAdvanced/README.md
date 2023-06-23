@@ -168,8 +168,13 @@ foreach (var line in file.Lines)
         _logger.LogError("Cannot parse Weight {value} at line {line}.", weightValue.Value, l.FromLine);
     else
     {
-        double weight = weightValue.Value;
+        //implicit conversion to double if value exists
+        double weight = weightValue;
     ...
+    }
+
+    //or implicit conversion to double? - can be both null or non null
+    double? weight2 = weightValue;
 ...
 ```
 

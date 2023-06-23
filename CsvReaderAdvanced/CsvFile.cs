@@ -70,8 +70,6 @@ public class CsvFile : ICsvFile
 
     //public List<string> ExistingFieldNames => AllFieldColumns.Where(e => e.Value >= 0).Select(e => e.Key).ToList();
 
-
-
     public void PopulateColumns()
     {
         _logger.LogDebug("Populating columns from header...");
