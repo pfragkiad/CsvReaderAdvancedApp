@@ -143,10 +143,10 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 
 
         ParsedValue<int> valueToken = line.GetInt(fieldName, c);
-        if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (!valueToken.IsParsed)
+        if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+        else if (valueToken.IsNull && !allowNull)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
 
         //we allow null if we arrive here
         if (!valueToken.IsNull && !idCollection.ContainsKey(valueToken))
@@ -166,10 +166,10 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 
         var valueToken = line.GetBool(fieldName, c);
 
-        if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (!valueToken.IsParsed)
+        if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+        else if (valueToken.IsNull && !allowNull)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
     }
@@ -185,10 +185,10 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 
         var valueToken = line.GetDateTimeOffset(fieldName, c);
 
-        if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (!valueToken.IsParsed)
+        if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+        else if (valueToken.IsNull && !allowNull)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
     }
@@ -199,7 +199,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
         TokenizedLine line,
         List<ValidationFailure> lineFailures,
         bool allowNull,
-        Dictionary<string,Limit>? limitsByName = null,
+        Dictionary<string, Limit>? limitsByName = null,
         string? limitsFieldName = null)
     {
         if (!c.ContainsKey(fieldName))
@@ -213,10 +213,10 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
         limitsFieldName ??= fieldName;
 
         string value = line.Tokens[c[fieldName]];
-        int? maximumLength =limitsByName is not null ?
+        int? maximumLength = limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].MaximumLength : null
             : null;
-       
+
         if (string.IsNullOrWhiteSpace(value) && !allowNull)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = value });
         else if (maximumLength.HasValue && value.Length > maximumLength)
@@ -231,7 +231,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
         TokenizedLine line,
         List<ValidationFailure> lineFailures,
         bool allowNull,
-        Dictionary<string, Limit>? limitsByName=null,
+        Dictionary<string, Limit>? limitsByName = null,
         string? limitsFieldName = null)
     {
         if (!c.ContainsKey(fieldName))
@@ -245,19 +245,19 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 
         limitsFieldName ??= fieldName;
         double? minimumLimit =
-            limitsByName is not null?
+            limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Minimum : null
             : null;
         double? maximumLimit =
-            limitsByName is not null?
+            limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
         ParsedValue<double> valueToken = line.GetDouble(fieldName, c);
-        if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (!valueToken.IsParsed)
+        if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+        else if (valueToken.IsNull && !allowNull)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
         else if (
             minimumLimit.HasValue && maximumLimit.HasValue &&
             (valueToken.Value < minimumLimit || valueToken.Value > maximumLimit))
@@ -283,7 +283,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
         Dictionary<string, Limit>? limitsByName = null,
         string? limitsFieldName = null)
     {
-        string? value = CheckString(fieldName, c, line, lineFailures, allowNull,limitsByName, limitsFieldName);
+        string? value = CheckString(fieldName, c, line, lineFailures, allowNull, limitsByName, limitsFieldName);
         if (value is null) return null;
 
         //if we arrive here the value is not null and an error can still occur if the value is not contained in the dictionary
