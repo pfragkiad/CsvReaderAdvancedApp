@@ -6,13 +6,15 @@ namespace CsvReaderAdvanced;
 
 public readonly struct ReaderReport
 {
-    public int Added { get; init; }
+    public int? Added { get; init; }
 
-    public int Updated { get; init; }
+    public int? Updated { get; init; }
 
-    public int Valid { get => Added + Updated; }
+    public int? Valid { get => Added + Updated; }
 
-    public int Invalid { get; init; }
+    public int? Invalid { get; init; }
+
+    public Dictionary<string, ReaderReport>? Subreports { get; init; }
 
     public ValidationResult Validation {get;init;}
 
