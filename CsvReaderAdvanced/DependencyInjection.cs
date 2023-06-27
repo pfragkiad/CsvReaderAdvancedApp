@@ -13,7 +13,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddCsvReader(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<ICsvReader,CsvReader>();
+        services.AddScoped<ICsvReader,CsvReader>();
         services.AddTransient<ICsvFile,CsvFile>();
 
         //Microsoft.Extensions.Hosting must be referenced

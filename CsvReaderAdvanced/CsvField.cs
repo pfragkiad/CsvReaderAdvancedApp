@@ -14,7 +14,7 @@ public class CsvField
 
     public string[] AlternativeUnits { get; init; } = Array.Empty<string>();
 
-    public HashSet<string> GetCandidateNames()
+    public HashSet<string> GetCandidateNames(bool ignoreAlternativeUnits)
     {
         var allNames = Alternatives.Concat(Alternatives.Select(a => a.Replace(" ", ""))).ToList();
         allNames.Add(Name);
@@ -28,6 +28,8 @@ public class CsvField
         foreach (string n in allNames)
         {
             candidates.Add(n);
+            if(ignoreAlternativeUnits) continue;
+
             foreach (string u in allUnits)
             {
                 candidates.Add($"{n} {u}");

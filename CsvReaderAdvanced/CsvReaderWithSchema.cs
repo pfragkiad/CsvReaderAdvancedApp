@@ -110,7 +110,9 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
                 Validation = new ValidationResult(
                     _file.MissingRequiredFields.Select(m =>
                     {
-                        string message = $"{m.Name} is missing from the csv file. Consider using one of the following headers: {(string.Join(", ", m.GetCandidateNames()))}";
+
+                        string candidateNames = string.Join(", ",m.GetCandidateNames(true).Select(n=>$"'{n}'"));
+                        string message = $"{m.Name} is missing from the csv file. Consider using one of the following headers: {candidateNames}";
                         ValidationFailure failure = new ValidationFailure()
                         {
                             ErrorMessage = message,

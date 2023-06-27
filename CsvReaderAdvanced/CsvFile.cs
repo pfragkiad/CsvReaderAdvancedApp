@@ -102,7 +102,7 @@ public class CsvFile : ICsvFile
         foreach (var f in schema.Fields)
         {
             bool found = false;
-            var candidatesNames = f.GetCandidateNames();
+            var candidatesNames = f.GetCandidateNames(false);
             foreach (string n in candidatesNames)
             {
                 if (ExistingColumns.ContainsKey(n))
