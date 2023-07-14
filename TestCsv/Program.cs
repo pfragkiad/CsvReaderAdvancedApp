@@ -33,7 +33,7 @@ internal class Program
         file.CheckAgainstSchema(schema);
         var c = file.ExistingFieldColumns;
 
-        var c = file.ExistingColumns;
+        //var c = file.ExistingColumns;
 
         foreach (var l in file.Lines!)
         {
