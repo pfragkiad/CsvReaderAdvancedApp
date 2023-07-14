@@ -110,6 +110,15 @@ public struct TokenizedLine
     //    return ParsedValue<T>.Unparsable;
     //}
 
+    public readonly string? GetString(string fieldName, Dictionary<string,int> columns, bool assumeWhiteSpaceIsEmpty=true)
+    {
+        string sValue = Tokens[columns[fieldName]];
+        if (assumeWhiteSpaceIsEmpty && string.IsNullOrWhiteSpace(sValue) || string.IsNullOrEmpty(sValue))
+            return null;
+
+        return sValue;
+    }
+
     public readonly ParsedValue<bool> GetBool(string fieldName, Dictionary<string, int> columns)
     {
         string sValue = Tokens[columns[fieldName]];

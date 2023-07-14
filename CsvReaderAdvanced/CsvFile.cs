@@ -25,6 +25,12 @@ public class CsvFile : ICsvFile
 
     public List<TokenizedLine?>? Lines { get; private set; }
 
+    /// <summary>
+    /// Reads the Lines from the file. If withHeader is true then the PopulateColumns() is called internally.
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="encoding"></param>
+    /// <param name="withHeader"></param>
     public void ReadFromFile(string path, Encoding encoding, bool withHeader = true)
     {
         Separator = _reader.ReadSeparator(path, encoding);
@@ -70,6 +76,9 @@ public class CsvFile : ICsvFile
 
     //public List<string> ExistingFieldNames => AllFieldColumns.Where(e => e.Value >= 0).Select(e => e.Key).ToList();
 
+    /// <summary>
+    /// Updates the ExistingColumns dictionary.
+    /// </summary>
     public void PopulateColumns()
     {
         _logger.LogDebug("Populating columns from header...");
@@ -84,6 +93,10 @@ public class CsvFile : ICsvFile
         }
     }
 
+    /// <summary>
+    /// Updates the ExistingFieldColumns, MissingFields and MissingRequiredFieds properties.
+    /// </summary>
+    /// <param name="schema"></param>
     public void CheckAgainstSchema(CsvSchema schema)
     {
         //attempt to fill the columns

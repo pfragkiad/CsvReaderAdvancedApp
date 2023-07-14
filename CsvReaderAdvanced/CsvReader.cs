@@ -117,6 +117,8 @@ public class CsvReader : ICsvReader
         int len = line.Length;
         for (int i = 0; i < len; i++)
         {
+            //if (i == len - 1) Debugger.Break();
+
             char c = line[i];
 
             if (c == quote)
@@ -135,24 +137,25 @@ public class CsvReader : ICsvReader
                     {
                         tokens.Add(quotedToken);
                         quotedToken = "";
+                        isCurrentTokenQuoted = false;
                         lastAddedItemWasQuoted = true;
                         break;
                     }
-                    else  //check for the next token if it is another quote of separator
-                    {
-                        c = line[i];
-                        if (c == quote)// "" case
-                            quotedToken += "\"";
-                        //last quote
-                        else if (c == separator && (quotedToken.Length > 0 || !omitEmptyEntries))
-                        {
-                            tokens.Add(quotedToken);
-                            quotedToken = "";
-                            isCurrentTokenQuoted = false; //reset flag (for error checking only)
 
-                            currentTokenStart = i + 1;
-                        }
+                    //check for the next token if it is another quote of separator
+                    c = line[i];
+                    if (c == quote)// "" case
+                        quotedToken += "\"";
+                    //last quote
+                    else if (c == separator && (quotedToken.Length > 0 || !omitEmptyEntries))
+                    {
+                        tokens.Add(quotedToken);
+                        quotedToken = "";
+                        isCurrentTokenQuoted = false; //reset flag (for error checking only)
+
+                        currentTokenStart = i + 1;
                     }
+
                 }
 
             else if (c == separator)

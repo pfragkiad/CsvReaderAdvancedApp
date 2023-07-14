@@ -178,4 +178,42 @@ foreach (var line in file.Lines)
 ...
 ```
 
+## Example 1 - Simple case without schema
+Let's assume that we have a simple csv file with known headers. The simplest case is to use the `ExistingColumns` property.
+This is populated after the call to `ReadFromFile` when the `withHeader` argument is set to `true`.
+
+Suppose that there are 3 labels in the header, namely: FullName, DoubleValue and IntValue representing a string, double and int field for each record.
+The sample content of the file is the following:
+```csv
+FullName;DoubleValue;IntValue
+name1;20.0,4
+name2;30.0,5
+```
+
+The full code to read them is then:
+
+```cs
+//build the app
+var host = Host.CreateDefaultBuilder(args).ConfigureServices((c, s) => s.AddCsvReader(c.Configuration));
+var app = host.Build();
+
+//read the file
+string path = @".\samples\hard.csv";
+var file = app.Services.GetCsvFile();
+file.ReadFromFile(path, Encoding.UTF8, withHeader: true) ;
+
+//get the values
+var c = file.ExistingColumns;
+foreach (var l in file.Lines!)
+{
+    if (!l.HasValue) return;
+    var t = l.Value.Tokens;
+    string? v1 = l.Value.GetString("FullName", c);
+    double? v2 = l.Value.GetDouble("DoubleValue", c);
+    int? v3 = l.Value.GetInt("IntValue", c);
+    ...
+}
+
+```
+
 > IS THAT ALL? Of course not. More examples are pending. The library is more powerful than it seems!
