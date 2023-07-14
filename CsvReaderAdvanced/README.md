@@ -186,8 +186,8 @@ Suppose that there are 3 labels in the header, namely: FullName, DoubleValue and
 The sample content of the file is the following:
 ```csv
 FullName;DoubleValue;IntValue
-name1;20.0,4
-name2;30.0,5
+name1;20.0;4
+name2;30.0;5
 ```
 
 The full code to read them is then:
