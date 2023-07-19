@@ -669,8 +669,12 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
         string? name = null;
         ParsedValue<int> idToken = ParsedValue<int>.Null;
         if (c.ContainsKey(intFieldName)) idToken = CheckIntId(intFieldName, c, line, lineFailures, idCollection, allowNull: true);
+       
+        //a failure will be added if the passed name is non-empty and is not included in the collection
         if (c.ContainsKey(stringFieldName)) name = CheckStringWithId(stringFieldName, c, line, lineFailures, nameCollection, allowNull: true);
-        if ((name is null || name is not null && !nameCollection.ContainsKey(name)) && idToken.IsNull)
+        if (name is not null && !nameCollection.ContainsKey(name)) return null;
+
+        if (name is null && idToken.IsNull)
         {
             if (!allowNull)
                 lineFailures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} must not be empty. Line: {line.FromLine}.", AttemptedValue = name });

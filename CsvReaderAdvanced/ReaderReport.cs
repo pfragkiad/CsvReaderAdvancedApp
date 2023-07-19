@@ -12,7 +12,11 @@ public readonly struct ReaderReport
 
     public int? Updated { get; init; }
 
-    public int? Valid { get => Added + Updated; }
+    public int? Valid
+    {
+        get =>
+            (Added is null) && (Updated is null) ? null : (Added ?? 0) + (Updated ?? 0);
+    }
 
     public int? Invalid { get; init; }
 
@@ -23,10 +27,17 @@ public readonly struct ReaderReport
     public static readonly ReaderReport DefaultValid =
         new ReaderReport() { Validation = new ValidationResult() };
 
+    public static ReaderReport CreateSingle(string propertyName, string message) =>
+        new ReaderReport() { Validation = new(new ValidationFailure[] { new ValidationFailure(propertyName, message) }) };
 
     public IResult ToIResult()
     {
-        if ((Valid ?? 0) > 0)
+        //if there is at least one valid entry we consider the result as successful
+
+        int totalValid = Subreports?.Sum(r => r.Value.Valid ?? 0) ?? 0;
+        totalValid += Valid ?? 0;
+
+        if (totalValid > 0)
             return Results.Ok(this);
         else
             return Results.UnprocessableEntity(this);
