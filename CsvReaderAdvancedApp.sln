@@ -5,7 +5,13 @@ VisualStudioVersion = 17.6.33801.468
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CsvReaderAdvanced", "CsvReaderAdvanced\CsvReaderAdvanced.csproj", "{18A34B4C-A741-41AD-A5EF-473DB83FBCF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCsv", "TestCsv\TestCsv.csproj", "{7109A3A2-3BB0-4475-87A3-011C5855D79D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestCsv", "TestCsv\TestCsv.csproj", "{7109A3A2-3BB0-4475-87A3-011C5855D79D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F23ADBB0-C6E2-4F92-81C0-830654AF2EB2}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
