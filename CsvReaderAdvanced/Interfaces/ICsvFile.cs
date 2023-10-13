@@ -13,7 +13,11 @@ namespace CsvReaderAdvanced.Interfaces
         char? Separator { get; }
 
         void CheckAgainstSchema(CsvSchema schema);
+        void Dispose();
         void PopulateColumns();
-        void ReadFromFile(string path, Encoding encoding, bool withHeader = true);
+        IEnumerable<TokenizedLine?> Read(string path, Encoding encoding, bool skipHeader);
+        void ReadFromFile(string path, Encoding encoding, bool withHeader);
+        void ReadHeader(string path, Encoding encoding);
+        void Reset();
     }
 }

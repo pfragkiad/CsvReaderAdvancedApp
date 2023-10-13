@@ -1,12 +1,14 @@
 ﻿using CsvReaderAdvanced.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.IO;
 using System.Numerics;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CsvReaderAdvanced;
 
-public class CsvFile : ICsvFile 
+public class CsvFile : ICsvFile, IDisposable
 {
     private readonly ILogger<CsvFile> _logger;
     private readonly ICsvReader _reader;
@@ -19,9 +21,37 @@ public class CsvFile : ICsvFile
 
     #region Initialization
 
+    public void Reset ()
+    {
+        Separator = null;
+        Header = null;
+        Lines = null;
+        ExistingColumns = new();
+        ExistingFieldColumns = new();
+        MissingFields = new();
+        MissingRequiredFields = new();
+    }
+
     public char? Separator { get; private set; }
 
     public TokenizedLine? Header { get; private set; }
+
+
+    public void ReadHeader(string path, Encoding encoding)
+    {
+
+        Separator = _reader.ReadSeparator(path, encoding);
+        if (Separator is null)
+        {
+            _logger.LogError("Cannot identify separator. Cannot not read file {path}.", path);
+            return;
+        }
+
+        using StreamReader reader = new StreamReader(path, encoding);
+        Header = _reader.GetTokenizedLine(reader.ReadLine(), 1, 1, null, Separator!.Value);
+        PopulateColumns();
+    }
+
 
     public List<TokenizedLine?>? Lines { get; private set; }
 
@@ -31,22 +61,40 @@ public class CsvFile : ICsvFile
     /// <param name="path"></param>
     /// <param name="encoding"></param>
     /// <param name="withHeader"></param>
-    public void ReadFromFile(string path, Encoding encoding, bool withHeader = true)
+    public void ReadFromFile(string path, Encoding encoding, bool withHeader)
+    {
+        if (withHeader && Header is null) ReadHeader(path, encoding);
+
+        if (!withHeader || Separator is null)
+        {
+            Separator = _reader.ReadSeparator(path, encoding);
+            if (Separator is null)
+            {
+                _logger.LogError("Cannot identify separator. Cannot not read file {path}.", path);
+                return;
+            }
+        }
+
+        using StreamReader reader = new StreamReader(path, encoding);
+        if (withHeader) _reader.GetTokenizedLine(reader.ReadLine(), 1, 1, null, Separator!.Value);
+
+        Lines = _reader.GetTokenizedLines(reader, Separator!.Value, startLineBeforeRead: withHeader ? 1 : 0).ToList();
+    }
+
+    public IEnumerable<TokenizedLine?> Read(string path, Encoding encoding, bool skipHeader)
     {
         Separator = _reader.ReadSeparator(path, encoding);
         if (Separator is null)
         {
             _logger.LogError("Cannot identify separator. Cannot not read file {path}.", path);
-            return;
+            yield break;
         }
 
-        using StreamReader reader = new StreamReader(path, encoding);
-        if (withHeader)
-        {
-            Header = _reader.GetTokenizedLine(reader.ReadLine(), 1, 1, null, Separator!.Value);
-            PopulateColumns();
-        }
-        Lines = _reader.GetTokenizedLines(reader, Separator!.Value, startLineBeforeRead: withHeader ? 1 : 0).ToList();
+        var _streamReader = new StreamReader(path, encoding);
+        if (skipHeader) _reader.GetTokenizedLine(_streamReader.ReadLine(), 1, 1, null, Separator!.Value);
+
+        foreach (var line in _reader.GetTokenizedLines(_streamReader, Separator!.Value))
+            yield return line;
     }
 
     #endregion
@@ -136,6 +184,8 @@ public class CsvFile : ICsvFile
 
 
     }
+
+    public void Dispose() => Reset();
 
     #endregion
 

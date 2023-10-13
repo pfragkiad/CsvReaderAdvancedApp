@@ -35,7 +35,6 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
     protected CsvSchema? GetSchema(string name) =>
         _options?.Schemas?.FirstOrDefault(s => s.Name == name);
 
-
     public ValidationResult CheckSchema(string schemaName)
     {
         if (_options?.Schemas is null || !_options.Schemas.Any())
