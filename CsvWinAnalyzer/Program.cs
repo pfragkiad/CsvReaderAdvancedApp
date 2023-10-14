@@ -1,6 +1,7 @@
 using CsvReaderAdvanced;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SqlServerExplorerLib;
 using System.Globalization;
 
 namespace CsvWinAnalyzer;
@@ -23,7 +24,10 @@ internal static class Program
             {
                 services
                 .AddSingleton<frmMain>()
+                .AddSingleton<frmDatabase>()
                 .AddCsvReader(context.Configuration)
+                .AddSingleton<SqlServerExplorer>()
+
                 ;
             })
             .Build();

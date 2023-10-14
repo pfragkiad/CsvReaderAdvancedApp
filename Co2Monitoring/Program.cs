@@ -32,7 +32,7 @@ internal class Program
 
 
 
-        CsvFile file = host.Services.GetCsvFile();
+        ICsvFile file = host.Services.GetCsvFile();
         //string[] fields = new string[] { "ID", "Country", "Ft", "Fm", "Mk", "Cn", "ec (cm3)","r" };
         string[] fields = new string[] { "ID", "Country", "Ft", "Fm", "Mk", "Cn", "ec (cm3)","m (kg)", "Mf (kg)", "r" };
 

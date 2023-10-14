@@ -1,6 +1,7 @@
 using CsvReaderAdvanced;
 using CsvReaderAdvanced.Interfaces;
 using CsvReaderAdvanced.Schemas;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -11,7 +12,7 @@ namespace CsvWinAnalyzer
 {
     public partial class frmMain : Form
     {
-        //private readonly IServiceProvider _provider;
+        private readonly IServiceProvider _provider;
         private readonly CsvFileFactory _csvFiles;
 
         public frmMain(
@@ -20,7 +21,7 @@ namespace CsvWinAnalyzer
         {
             InitializeComponent();
 
-            //_provider = provider;
+            _provider = provider;
             _csvFiles = csvFiles;
 
             //initialize base on settings
@@ -121,9 +122,9 @@ namespace CsvWinAnalyzer
         private void btnExport_Click(object sender, EventArgs e)
         {
             string p = SourcePath;
-            if (p.Length > 0 && !File.Exists(p))
+            if (p.Length == 0 || !File.Exists(p))
             {
-                ShowWarning("The current path does not exist!");
+                ShowWarning("The current path is emppty or does not exist!");
                 return;
             }
 
@@ -186,26 +187,13 @@ namespace CsvWinAnalyzer
 
         private List<int> SelectedColumns { get => SelectedHeaders.Select(l => int.Parse(l.Text) - 1).ToList(); }
 
-
-        #region Utility functions
-
-        void ShowInfo(string message) =>
-            MessageBox.Show(message, "CSV Analyzer", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-        void ShowWarning(string message) =>
-            MessageBox.Show(message, "CSV Analyzer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-        void ShowError(string message) =>
-            MessageBox.Show(message, "CSV Analyzer", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-        void Wait() { Cursor.Current = Cursors.WaitCursor; Application.UseWaitCursor = true; }
-        void StopWaiting() { Cursor.Current = Cursors.Default; Application.UseWaitCursor = false; }
-
-
-        #endregion
-
-
         #region Analyze fields
+
+
+        private void lvwHeader_DoubleClick(object sender, EventArgs e)
+        {
+            AnalyzeHeaders(SelectedHeaders);
+        }
 
         private void mnuAnalyze_Click(object sender, EventArgs e)
         {
@@ -218,9 +206,16 @@ namespace CsvWinAnalyzer
             AnalyzeHeaders(AllHeaders);
         }
 
- 
+
         private void AnalyzeHeaders(IEnumerable<ListViewItem> items)
         {
+            string p = SourcePath;
+            if (p.Length == 0 || !File.Exists(p))
+            {
+                ShowWarning("The current path is emppty or does not exist!");
+                return;
+            }
+
             Wait();
 
 
@@ -378,6 +373,14 @@ namespace CsvWinAnalyzer
 
         private void FindDataTypes(IEnumerable<ListViewItem> items, int maxRows = int.MaxValue)
         {
+            string p = SourcePath;
+            if (p.Length == 0 || !File.Exists(p))
+            {
+                ShowWarning("The current path is empty or does not exist!");
+                return;
+            }
+
+
             if (lvwHeader.SelectedItems.Count == 0) return;
 
             Wait();
@@ -401,6 +404,16 @@ namespace CsvWinAnalyzer
         }
         #endregion
 
- 
+
+        private void btnExportToDatabase_Click(object sender, EventArgs e)
+        {
+            frmDatabase frm = _provider.GetRequiredService<frmDatabase>();
+
+            frm.SelectedHeaders = SelectedHeaders;
+
+            frm.ShowDialog();
+        }
+
+     
     }
 }
