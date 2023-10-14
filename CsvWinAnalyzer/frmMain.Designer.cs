@@ -124,7 +124,7 @@
             // 
             mnuFindDataType.Name = "mnuFindDataType";
             mnuFindDataType.Size = new Size(166, 22);
-            mnuFindDataType.Text = "Guess data type...";
+            mnuFindDataType.Text = "Find data type (fast)...";
             mnuFindDataType.Click += mnuFindDataType_Click;
             // 
             // mnuFindMax

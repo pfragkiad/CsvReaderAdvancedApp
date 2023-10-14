@@ -8,13 +8,17 @@ namespace CsvWinAnalyzer
 {
     public partial class frmMain : Form
     {
-        private readonly IServiceProvider _provider;
+        //private readonly IServiceProvider _provider;
+        private readonly CsvFileFactory _csvFiles;
 
-        public frmMain(IServiceProvider provider)
+        public frmMain(
+            IServiceProvider provider,
+            CsvFileFactory csvFiles)
         {
             InitializeComponent();
 
-            _provider = provider;
+            //_provider = provider;
+            _csvFiles = csvFiles;
 
             //initialize base on settings
             txtFilePath.Text = FormSettings.Default.Filepath;
@@ -72,8 +76,7 @@ namespace CsvWinAnalyzer
 
         private void ReadHeader()
         {
-            var file = _provider.GetCsvFile();
-            file.ReadHeader(txtFilePath.Text, Encoding.UTF8);
+            var file = _csvFiles.GetFile(txtFilePath.Text, Encoding.UTF8,true);
 
             lvwHeader.Items.Clear();
             foreach (var entry in file.ExistingColumns)
@@ -87,6 +90,8 @@ namespace CsvWinAnalyzer
             lvwHeader.Columns[1].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
         }
 
+        enum Types { Unknown, Integer, Float, DateTime, String }
+
         private void mnuFindDataType_Click(object sender, EventArgs e)
         {
             if (lvwHeader.SelectedItems.Count == 0) return;
@@ -94,75 +99,28 @@ namespace CsvWinAnalyzer
             string path = txtFilePath.Text;
             var encoding = Encoding.UTF8;
 
-            var file = _provider.GetCsvFile();
-            file.ReadHeader(path, encoding);
+            var file = _csvFiles.GetFile(txtFilePath.Text, Encoding.UTF8, true);
 
             int maxRows = 100;
 
             lvwHeader.SuspendLayout();
 
-            foreach (ListViewItem item in lvwHeader.SelectedItems)
+            foreach( var item in SelectedHeaders )
             {
                 int column = int.Parse(item.Text) - 1;
-
-                file.Reset(); //reset in order to start reading from start
-
-                int scenario = -1, iRow = 0;
-                foreach (var line in file.Read(path, encoding, true))
-                {
-                    if (line is null) continue;
-                    var tokenizedLine = line.Value;
-
-                    if (tokenizedLine.Tokens[column].Length > 0 && scenario == -1)
-                        scenario = 0;
-
-                    iRow++;
-                    if (iRow > maxRows) break;
-
-                    //check from stricter (int) to less stricter (string)
-                    //check for int
-                    if (scenario == 0) //int
-                    {
-                        if (tokenizedLine.GetInt(column).IsParsed) continue;
-                        scenario++;
-                    }
-
-                    if (scenario == 1) //float
-                    {
-                        if (tokenizedLine.GetFloat(column, CultureInfo.InvariantCulture).IsParsed) continue;
-                        scenario++;
-                    }
-
-                    if (scenario == 2) //date
-                    {
-                        if (tokenizedLine.GetDateTime(column, CultureInfo.InvariantCulture, "yyyy-MM-dd").IsParsed) continue;
-                        scenario++;
-                    }
-
-                    //else if (scenario==4) //string
-                    //    if (tokenizedLine.GetDateTime(column, CultureInfo.InvariantCulture,"yyyy-MM-dd").IsParsed) continue;
-
-
-                }
-
-                string dataType = scenario switch
-                {
-                    -1 => "<unknown>",
-                    0 => "int",
-                    1 => "float",
-                    2 => "date",
-                    _ => "string"
-                };
-
-
-                if (item.SubItems.Count < 3)
-                    item.SubItems.Add(dataType);
-                else
-                    item.SubItems[2].Text = dataType;
+                var dataType = file.GetBaseType(column, path, encoding,BaseType.Unknown, true, maxRows);
+                SetDataType(item,dataType.ToString());
             }
-
             lvwHeader.ResumeLayout();
 
+        }
+
+        private static void SetDataType(ListViewItem item, string dataType)
+        {
+            if (item.SubItems.Count < 3)
+                item.SubItems.Add(dataType);
+            else
+                item.SubItems[2].Text = dataType;
         }
 
         private void lvwHeader_KeyDown(object sender, KeyEventArgs e)
@@ -200,8 +158,8 @@ namespace CsvWinAnalyzer
                 if (dataType != "int") continue;
 
                 int max = 0;
-                var file = _provider.GetCsvFile();
-                foreach (var line in file.Read(path, encoding, true))
+                var lines = _csvFiles.ReadFile(path,encoding,true);
+                foreach (var line in lines)
                 {
                     if (line is null) continue;
                     var tokenizedLine = line.Value;
@@ -233,8 +191,8 @@ namespace CsvWinAnalyzer
                 if (dataType != "float") continue;
 
                 float max = 0;
-                var file = _provider.GetCsvFile();
-                foreach (var line in file.Read(path, encoding, true))
+                var lines = _csvFiles.ReadFile(path, encoding, true);
+                foreach (var line in lines)
                 {
                     if (line is null) continue;
                     var tokenizedLine = line.Value;
@@ -266,8 +224,8 @@ namespace CsvWinAnalyzer
 
                 int max = 0;
 
-                var file = _provider.GetCsvFile();
-                foreach (var line in file.Read(path, encoding, true))
+                var lines = _csvFiles.ReadFile(path, encoding, true);
+                foreach (var line in lines)
                 {
                     if (line is null) continue;
                     var tokenizedLine = line.Value;
@@ -294,14 +252,14 @@ namespace CsvWinAnalyzer
             string p = SourcePath;
             if (p.Length > 0 && !File.Exists(p))
             {
-                MessageBox.Show("The current path does not exist!");
+                ShowWarning("The current path does not exist!");
                 return;
             }
 
             var headers = SelectedHeaders;
             if (headers.Count == 0)
             {
-                MessageBox.Show("Select at least one header first!");
+                ShowWarning("Select at least one header first!");
                 return;
             }
 
@@ -319,7 +277,21 @@ namespace CsvWinAnalyzer
             var reply = d.ShowDialog();
             if (reply != DialogResult.OK) return;
 
+            Wait();
 
+            try
+            {
+
+                var file = _csvFiles.GetFile(p,Encoding.Default,true);
+                file.SavePartialAs(p, d.FileName, ';', Encoding.Default, headers.Select(c => int.Parse(c.Text) - 1).ToArray());
+                StopWaiting();
+                ShowInfo("Successfully exported!");
+            }
+            catch(Exception ex) 
+            {
+                StopWaiting();
+                ShowError($"Error: {ex.Message}");
+            }
         }
 
 
@@ -338,5 +310,24 @@ namespace CsvWinAnalyzer
 
         private string SourcePath { get => txtFilePath.Text; }
         private List<ListViewItem> SelectedHeaders { get => lvwHeader.SelectedItems.Cast<ListViewItem>().ToList(); }
+        private List<int> SelectedColumns { get => SelectedHeaders.Select(l=>int.Parse(l.Text)+1).ToList(); }
+
+
+        #region Utility functions
+
+        void ShowInfo(string message) =>
+            MessageBox.Show(message,"CSV Analyzer",MessageBoxButtons.OK,MessageBoxIcon.Information);
+
+        void ShowWarning(string message) =>
+            MessageBox.Show(message, "CSV Analyzer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+        void ShowError(string message) =>
+            MessageBox.Show(message, "CSV Analyzer", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+        void Wait() { Cursor.Current = Cursors.WaitCursor; Application.UseWaitCursor = true; }
+        void StopWaiting() { Cursor.Current = Cursors.Default; Application.UseWaitCursor = false; }
+
+
+        #endregion
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace CsvReaderAdvanced;
+﻿namespace CsvReaderAdvanced.Schemas;
 
 public class CsvSchema
 {

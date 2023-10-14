@@ -1,4 +1,4 @@
-﻿namespace CsvReaderAdvanced;
+﻿namespace CsvReaderAdvanced.Schemas;
 
 public class CsvField
 {
@@ -6,7 +6,7 @@ public class CsvField
 
     public bool Required { get; init; } = false;
 
-    public string[] Alternatives { get; init; } = Array.Empty<string>();    
+    public string[] Alternatives { get; init; } = Array.Empty<string>();
 
     public string[] AlternativeFields { get; init; } = Array.Empty<string>();
 
@@ -28,7 +28,7 @@ public class CsvField
         foreach (string n in allNames)
         {
             candidates.Add(n);
-            if(ignoreAlternativeUnits) continue;
+            if (ignoreAlternativeUnits) continue;
 
             foreach (string u in allUnits)
             {

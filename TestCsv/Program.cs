@@ -1,4 +1,5 @@
 ﻿using CsvReaderAdvanced;
+using CsvReaderAdvanced.Schemas;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using System.Text;

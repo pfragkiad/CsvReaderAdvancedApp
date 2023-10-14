@@ -13,8 +13,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddCsvReader(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<ICsvReader,CsvReader>();
-        services.AddTransient<ICsvFile,CsvFile>();
+        services
+        .AddScoped<ICsvReader,CsvReader>()
+        .AddTransient<ICsvFile,CsvFile>()
+        .AddScoped<CsvFileFactory>()
+        ;
 
         //Microsoft.Extensions.Hosting must be referenced
         services.Configure<CsvSchemaOptions>(configuration.GetSection(CsvSchemaOptions.CsvSchemasSection));
@@ -27,6 +30,9 @@ public static class DependencyInjection
 
     public static ICsvFile GetCsvFile(this IServiceProvider provider) =>
         provider.GetRequiredService<ICsvFile>();
+
+    public static CsvFileFactory GetCsvFileFactory(this IServiceProvider provider) =>
+        provider.GetRequiredService<CsvFileFactory>();
 
     public static CsvSchemaOptions GetSchemaOptions(this IServiceProvider provider) =>
         provider.GetRequiredService<IOptionsMonitor<CsvSchemaOptions>>().CurrentValue;

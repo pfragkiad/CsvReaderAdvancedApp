@@ -34,8 +34,9 @@ To understand exactly what the method does, it assumes that the current configur
 ```cs
 public static IServiceCollection AddCsvReader(this IServiceCollection services, IConfiguration configuration)
 {
-    services.AddSingleton<ICsvReader,CsvReader>();
+    services.AddScoped<ICsvReader,CsvReader>();
     services.AddTransient<ICsvFile,CsvFile>();
+    services.AddScoped<CsvFileFactory>();
 
     //Microsoft.Extensions.Hosting must be referenced
     services.Configure<CsvSchemaOptions>(configuration.GetSection(CsvSchemaOptions.CsvSchemasSection));
@@ -73,21 +74,15 @@ We assume that we get the options via DI like the following example:
 
 ```cs
 public Importer(
-    IUnitOfWork context,
-    IMapper mapper,
     IServiceProvider provider,
     ILogger logger,
     IOptions<CsvSchemaOptions> options)
 {
-    _context = context;
-    _mapper = mapper;
     _provider = provider;
     _logger = logger;
     _options = options.Value;
 }
 
-protected readonly IUnitOfWork _context;
-protected readonly IMapper _mapper;
 protected readonly IServiceProvider _provider;
 protected readonly ILogger _logger;
 protected readonly CsvSchemaOptions _options;
@@ -113,7 +108,6 @@ public ValidationResult CheckForSchema(string name)
             new ValidationFailure[] { new ValidationFailure(name, $"Cannot retrieve '{name}' schema from settings") });
     }
     return new ValidationResult();
-
 }
 ```
 
@@ -130,6 +124,11 @@ file.ReadFromFile(path, Encoding.UTF8, withHeader:true);
 //the line above is equivalent to the 2 commands:
 file.ReadFromFile(path, Encoding.UTF8);
 file.PopulateColumns();
+
+...
+//or we can use the CsvFileFactory
+//implicitly calls ReadHeader(), which also calls PopulateColumns()
+var file = _provider.GetFile(path, Encoding.UTF8, withHeader:true);
 ```
 
 The `PopulateColumns()` method updates the internal `ExistingColumns` dictionary. The `ExistingColumns` dictionary is case insensitive and stores the index location for each column. The index location is zero-based.

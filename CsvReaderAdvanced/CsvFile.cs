@@ -1,5 +1,7 @@
 ﻿using CsvReaderAdvanced.Interfaces;
+using CsvReaderAdvanced.Schemas;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.IO;
 using System.Numerics;
 using System.Reflection.PortableExecutable;
@@ -7,6 +9,19 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CsvReaderAdvanced;
+
+public enum BaseType
+{
+    Unknown,
+    Boolean,
+    Integer,
+    Long,
+    Float,
+    Double,
+    DateTimeOffset,
+    DateTime,
+    String
+}
 
 public class CsvFile : ICsvFile, IDisposable
 {
@@ -21,7 +36,7 @@ public class CsvFile : ICsvFile, IDisposable
 
     #region Initialization
 
-    public void Reset ()
+    public void Reset()
     {
         Separator = null;
         Header = null;
@@ -81,6 +96,13 @@ public class CsvFile : ICsvFile, IDisposable
         Lines = _reader.GetTokenizedLines(reader, Separator!.Value, startLineBeforeRead: withHeader ? 1 : 0).ToList();
     }
 
+    /// <summary>
+    /// Starts reading the file synchronously.Use a for each structure to read the file line by line.
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="encoding"></param>
+    /// <param name="skipHeader"></param>
+    /// <returns></returns>
     public IEnumerable<TokenizedLine?> Read(string path, Encoding encoding, bool skipHeader)
     {
         Separator = _reader.ReadSeparator(path, encoding);
@@ -189,6 +211,97 @@ public class CsvFile : ICsvFile, IDisposable
 
     #endregion
 
+    #region Data types
+
+    public BaseType GetBaseType(
+        int column,
+        string path,
+        Encoding encoding,
+        BaseType assumedType = BaseType.Unknown,
+        bool hasHeader = true,
+        int maxRows = int.MaxValue)
+    {
+        int iRow = 0;
+
+        var lines = Read(path, encoding, hasHeader);
+        foreach (var line in lines)
+        {
+            if (line is null) continue;
+            var tokenizedLine = line.Value;
+
+            iRow++;
+            if (iRow > maxRows) break;
+
+            if (tokenizedLine.Tokens[column].Length == 0) continue; 
+            
+            //we arrive here the first time of a non-empty string
+            if(assumedType == BaseType.Unknown) assumedType = BaseType.Boolean;
+
+            //check from stricter to less stricter
+            if (assumedType == BaseType.Boolean && tokenizedLine.GetBool(column).IsParsed) continue;
+
+            assumedType = BaseType.Integer;
+            if (assumedType == BaseType.Integer && tokenizedLine.GetInt(column).IsParsed) continue;
+
+            assumedType = BaseType.Long;
+            if (assumedType == BaseType.Long && tokenizedLine.GetLong(column).IsParsed) continue;
+
+            assumedType = BaseType.Float;
+            if (assumedType == BaseType.Float && tokenizedLine.GetFloat(column, CultureInfo.InvariantCulture).IsParsed) continue;
+
+            assumedType = BaseType.Double;
+            if (assumedType == BaseType.Double && tokenizedLine.GetDouble(column, CultureInfo.InvariantCulture).IsParsed) continue;
+
+            assumedType = BaseType.DateTimeOffset;
+            if (assumedType == BaseType.DateTimeOffset && tokenizedLine.GetDateTimeOffset(column, CultureInfo.InvariantCulture, "yyyy-MM-dd").IsParsed) continue;
+
+            assumedType = BaseType.DateTime;
+            if (assumedType == BaseType.DateTime && tokenizedLine.GetDateTime(column, CultureInfo.InvariantCulture, "yyyy-MM-dd").IsParsed) continue;
+            //assumedType = BaseType.String;
+            return BaseType.String; //no need to continue looping from here
+        }
+
+        return assumedType;
+    }
+
+    public bool ConfirmAssumedType(
+        int column,
+        string path,
+        Encoding encoding,
+        BaseType assumedType,
+        bool hasHeader = true,
+        int maxRows = int.MaxValue)
+    {
+        if (assumedType == BaseType.Unknown) return true;
+
+        int iRow = 0;
+
+        var lines = Read(path, encoding, hasHeader);
+        foreach (var line in lines)
+        {
+            if (line is null) continue;
+            var tokenizedLine = line.Value;
+
+            if (tokenizedLine.Tokens[column].Length > 0 && assumedType == BaseType.Unknown)
+                assumedType = BaseType.Integer;
+
+            iRow++;
+            if (iRow > maxRows) return true;
+
+            if (
+                assumedType == BaseType.Integer && !tokenizedLine.GetInt(column).IsParsed ||
+                assumedType == BaseType.Long && !tokenizedLine.GetLong(column).IsParsed ||
+                assumedType == BaseType.Float && !tokenizedLine.GetFloat(column, CultureInfo.InvariantCulture).IsParsed ||
+                assumedType == BaseType.Double && !tokenizedLine.GetDouble(column, CultureInfo.InvariantCulture).IsParsed ||
+                assumedType == BaseType.DateTime && !tokenizedLine.GetDateTime(column, CultureInfo.InvariantCulture, "yyyy-MM-dd").IsParsed)
+                return false;
+        }
+
+        return true;
+    }
+
+    #endregion
+
     #region Save to file
 
     public async Task SavePartialAs(
@@ -200,8 +313,8 @@ public class CsvFile : ICsvFile, IDisposable
     {
         //populate existing columns
         if (Header is null) ReadHeader(sourcePath, encoding);
-        bool useFields = ExistingFieldColumns.Count>0;
-        
+        bool useFields = ExistingFieldColumns.Count > 0;
+
         //get the source columns
         int[] columns = useFields ?
             columnNames.Select(c => ExistingFieldColumns[c]).ToArray() :
@@ -220,7 +333,12 @@ public class CsvFile : ICsvFile, IDisposable
     {
         using StreamWriter writer = new StreamWriter(targetPath, false, encoding);
         foreach (var line in Read(sourcePath, encoding, skipHeader: false))
-            await writer.WriteLineAsync(string.Join(targetSeparator, columns.Select(c => line!.Value.Tokens[c])));
+            await writer.WriteLineAsync(string.Join(targetSeparator, columns.Select(c =>
+            {
+                string token = line!.Value.Tokens[c];
+                if (token.Contains(targetSeparator)) token = $"\"{token}\"";
+                return token;
+            })));
     }
 
     #endregion

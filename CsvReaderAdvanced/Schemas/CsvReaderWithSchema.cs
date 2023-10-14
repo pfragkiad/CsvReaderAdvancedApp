@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Text;
 
-namespace CsvReaderAdvanced;
+namespace CsvReaderAdvanced.Schemas;
 
 public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 {
@@ -108,7 +108,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
                     _file.MissingRequiredFields.Select(m =>
                     {
 
-                        string candidateNames = string.Join(", ",m.GetCandidateNames(true).Select(n=>$"'{n}'"));
+                        string candidateNames = string.Join(", ", m.GetCandidateNames(true).Select(n => $"'{n}'"));
                         string message = $"{m.Name} is missing from the csv file. Consider using one of the following headers: {candidateNames}";
                         ValidationFailure failure = new ValidationFailure()
                         {
@@ -215,7 +215,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
     }
 
     protected static ParsedValue<bool> CheckBool(
-        string fieldName,string sValue, int recordNumber,
+        string fieldName, string sValue, int recordNumber,
         List<ValidationFailure> lineFailures,
         bool allowNull)
     {
@@ -230,7 +230,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
     }
 
     protected static void CheckBool(
-     string fieldName, bool? value,int recordNumber,
+     string fieldName, bool? value, int recordNumber,
      List<ValidationFailure> lineFailures,
      bool allowNull)
     {
@@ -270,10 +270,10 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 
         return valueToken;
     }
-   protected static ParsedValue<DateTimeOffset> CheckDateTimeOffset(
-        string fieldName,string sValue, int recordNumber,
-        List<ValidationFailure> lineFailures,
-        bool allowNull)
+    protected static ParsedValue<DateTimeOffset> CheckDateTimeOffset(
+         string fieldName, string sValue, int recordNumber,
+         List<ValidationFailure> lineFailures,
+         bool allowNull)
     {
         var valueToken = GetDateTimeOffset(sValue);
 
@@ -284,12 +284,12 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 
         return valueToken;
     }
- protected static void CheckDateTimeOffset(
-        string fieldName,DateTimeOffset? value, int recordNumber,
-        List<ValidationFailure> lineFailures,
-        bool allowNull)
+    protected static void CheckDateTimeOffset(
+           string fieldName, DateTimeOffset? value, int recordNumber,
+           List<ValidationFailure> lineFailures,
+           bool allowNull)
     {
- 
+
         if (value is null && !allowNull)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = value });
     }
@@ -340,7 +340,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
     }
 
     protected static string? CheckString(
-    string fieldName,string? value,int recordNumber,
+    string fieldName, string? value, int recordNumber,
     List<ValidationFailure> lineFailures,
     bool allowNull,
     Dictionary<string, Limit>? limitsByName = null,
@@ -637,7 +637,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
      Dictionary<string, Limit>? limitsByName = null,
      string? limitsFieldName = null)
     {
-        string? value = CheckString(fieldName, sValue,recordNumber, lineFailures, allowNull, limitsByName, limitsFieldName);
+        string? value = CheckString(fieldName, sValue, recordNumber, lineFailures, allowNull, limitsByName, limitsFieldName);
         if (value is null) return null;
 
         //if we arrive here the value is not null and an error can still occur if the value is not contained in the dictionary
@@ -668,7 +668,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
         string? name = null;
         ParsedValue<int> idToken = ParsedValue<int>.Null;
         if (c.ContainsKey(intFieldName)) idToken = CheckIntId(intFieldName, c, line, lineFailures, idCollection, allowNull: true);
-       
+
         //a failure will be added if the passed name is non-empty and is not included in the collection
         if (c.ContainsKey(stringFieldName)) name = CheckStringWithId(stringFieldName, c, line, lineFailures, nameCollection, allowNull: true);
         if (name is not null && !nameCollection.ContainsKey(name)) return null;
@@ -686,13 +686,13 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
     }
 
 
-      protected static int? GetIdByName<T>(
-        string fieldName,
-        Dictionary<string, int> c,
-        TokenizedLine l,
-        List<ValidationFailure> lineFailures,
-        Dictionary<string, T> collectionByName,
-        bool allowNull)
+    protected static int? GetIdByName<T>(
+      string fieldName,
+      Dictionary<string, int> c,
+      TokenizedLine l,
+      List<ValidationFailure> lineFailures,
+      Dictionary<string, T> collectionByName,
+      bool allowNull)
     {
         if (!c.ContainsKey(fieldName)) return null;
         string? name = CheckStringWithId(fieldName, c, l, lineFailures, collectionByName, allowNull);
@@ -706,7 +706,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
      Dictionary<string, T> collectionByName,
      bool allowNull)
     {
-        string? name = CheckStringWithId(fieldName,value,recordNumber, lineFailures, collectionByName, allowNull);
+        string? name = CheckStringWithId(fieldName, value, recordNumber, lineFailures, collectionByName, allowNull);
         if (name is null) return null;
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
