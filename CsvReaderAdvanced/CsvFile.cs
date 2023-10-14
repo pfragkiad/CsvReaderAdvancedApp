@@ -1,27 +1,11 @@
 ﻿using CsvReaderAdvanced.Interfaces;
 using CsvReaderAdvanced.Schemas;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
-using System.IO;
-using System.Numerics;
-using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace CsvReaderAdvanced;
-
-public enum BaseType
-{
-    Unknown,
-    Boolean,
-    Integer,
-    Long,
-    Float,
-    Double,
-    DateTimeOffset,
-    DateTime,
-    String
-}
 
 public class CsvFile : ICsvFile, IDisposable
 {
@@ -232,13 +216,13 @@ public class CsvFile : ICsvFile, IDisposable
             iRow++;
             if (iRow > maxRows) break;
 
-            if (tokenizedLine.Tokens[column].Length == 0) continue; 
-            
+            if (tokenizedLine.Tokens[column].Length == 0) continue;
+
             //we arrive here the first time of a non-empty string
-            if(assumedType == BaseType.Unknown) assumedType = BaseType.Boolean;
+            if (assumedType == BaseType.Unknown) assumedType = BaseType.Boolean;
 
             //check from stricter to less stricter
-            if (assumedType == BaseType.Boolean && tokenizedLine.GetBool(column).IsParsed) continue;
+            if (assumedType == BaseType.Boolean && tokenizedLine.GetBoolean(column).IsParsed) continue;
 
             assumedType = BaseType.Integer;
             if (assumedType == BaseType.Integer && tokenizedLine.GetInt(column).IsParsed) continue;
@@ -298,6 +282,247 @@ public class CsvFile : ICsvFile, IDisposable
         }
 
         return true;
+    }
+
+
+    public CsvFieldStats GetFieldStats(int column,
+        string path,
+        Encoding encoding,
+        BaseType assumedType,
+        bool hasHeader = true,
+        int maxRows = int.MaxValue)
+    {
+
+        bool initialized = false;
+        int min = 0, max = 0;
+        long minL = 0, maxL = 0;
+        float minF = 0.0f, maxF = 0.0f;
+        double minD = 0.0, maxD = 0.0;
+        DateTimeOffset minDto = DateTimeOffset.MinValue, maxDto = DateTimeOffset.MaxValue;
+        DateTime minDt = DateTime.MinValue, maxDt = DateTime.MaxValue;
+        int minLength = 0, maxLength = 0; //for strings
+
+
+        int nullValues = 0, allValues = 0, unparsedValues = 0;
+
+        int iRow = 0;
+        foreach (var line in Read(path, encoding, hasHeader))
+        {
+            if (!line.HasValue) continue;
+            var t = line.Value;
+
+            iRow++; if (iRow > maxRows) break;
+
+            allValues++;
+
+            if (assumedType == BaseType.Integer)
+            {
+                var value = t.GetInt(column);
+                if (value.IsNull)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+                if (!initialized)
+                {
+                    min = max = (int)value;
+                    initialized = true;
+                    continue;
+                }
+                if ((int)value < min) min = (int)value;
+                else if ((int)value > max) max = (int)value;
+            }
+            else if (assumedType == BaseType.String)
+            {
+                var value = t.GetString(column);
+                if (value is null)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                //no case of unparsed string value
+                //if (!value.IsParsed) 
+                //{
+                //    unparsedValues++;
+                //    continue;
+                //}
+
+                int length = value.Length;
+                if (!initialized)
+                {
+                    minLength = maxLength = length;
+                    initialized = true;
+                    continue;
+                }
+                if (length < minLength) minLength = length;
+                else if (length > maxLength) maxLength = length;
+            }
+            else if (assumedType == BaseType.Float)
+            {
+                var value = t.GetFloat(column);
+                if (value.IsNull)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+                if (!initialized)
+                {
+                    minF = maxF = (float)value;
+                    initialized = true;
+                    continue;
+                }
+                if ((float)value < minF) minF = (float)value;
+                else if ((float)value > maxF) maxF = (float)value;
+            }
+            else if (assumedType == BaseType.Double)
+            {
+                var value = t.GetDouble(column);
+                if (value.IsNull)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+                if (!initialized)
+                {
+                    minD = maxD = (double)value;
+                    initialized = true;
+                    continue;
+                }
+                if ((double)value < minD) minD = (double)value;
+                else if ((double)value > maxD) maxD = (double)value;
+            }
+            else if (assumedType == BaseType.Long)
+            {
+                var value = t.GetLong(column);
+                if (value.IsNull)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+                if (!initialized)
+                {
+                    minL = maxL = (long)value;
+                    initialized = true;
+                    continue;
+                }
+                if ((long)value < minL) minL = (long)value;
+                else if ((long)value > maxL) maxL = (long)value;
+            }
+
+            else if (assumedType == BaseType.DateTimeOffset)
+            {
+                var value = t.GetDateTimeOffset(column);
+                if (value.IsNull)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+                if (!initialized)
+                {
+                    minDto = maxDto = (DateTimeOffset)value;
+                    initialized = true;
+                    continue;
+                }
+                if ((DateTimeOffset)value < minDto) minDto = (DateTimeOffset)value;
+                else if ((DateTimeOffset)value > maxDto) maxDto = (DateTimeOffset)value;
+            }
+            else if (assumedType == BaseType.DateTime)
+            {
+                var value = t.GetDateTime(column);
+                if (value.IsNull)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+                if (!initialized)
+                {
+                    minDt = maxDt = (DateTime)value;
+                    initialized = true;
+                    continue;
+                }
+                if ((DateTime)value < minDt) minDt = (DateTime)value;
+                else if ((DateTime)value > maxDt) maxDt = (DateTime)value;
+            }
+            else if (assumedType == BaseType.Boolean)
+            {
+                var value = t.GetBoolean(column);
+                if (value.IsNull)
+                {
+                    nullValues++;
+                    continue;
+                }
+
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+                //no further stats (no min/max)
+                //if (!initialized)
+                //{
+                //    minDt = maxDt = (DateTime)value;
+                //    initialized = true;
+                //    continue;
+                //}
+                //if ((DateTime)value < minDt) minDt = (DateTime)value;
+                //else if ((DateTime)value > maxDt) maxDt = (DateTime)value;
+            }
+
+        }
+
+        return new CsvFieldStats()
+        {
+            BaseType = assumedType,
+            Minimum = initialized ? min : null,
+            Maximum = initialized ? max : null,
+            ValuesCount = allValues,
+            NullValuesCount = nullValues,
+            UnparsedValuesCount = unparsedValues
+        };
     }
 
     #endregion

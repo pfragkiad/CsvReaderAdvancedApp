@@ -1,5 +1,6 @@
 using CsvReaderAdvanced;
 using CsvReaderAdvanced.Interfaces;
+using CsvReaderAdvanced.Schemas;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text;
@@ -76,7 +77,7 @@ namespace CsvWinAnalyzer
 
         private void ReadHeader()
         {
-            var file = _csvFiles.GetFile(txtFilePath.Text, Encoding.UTF8,true);
+            var file = _csvFiles.GetFile(txtFilePath.Text, Encoding.UTF8, true);
 
             lvwHeader.Items.Clear();
             foreach (var entry in file.ExistingColumns)
@@ -105,11 +106,11 @@ namespace CsvWinAnalyzer
 
             lvwHeader.SuspendLayout();
 
-            foreach( var item in SelectedHeaders )
+            foreach (var item in SelectedHeaders)
             {
                 int column = int.Parse(item.Text) - 1;
-                var dataType = file.GetBaseType(column, path, encoding,BaseType.Unknown, true, maxRows);
-                SetDataType(item,dataType.ToString());
+                var dataType = file.GetBaseType(column, path, encoding, BaseType.Unknown, true, maxRows);
+                SetDataType(item, dataType.ToString());
             }
             lvwHeader.ResumeLayout();
 
@@ -158,7 +159,7 @@ namespace CsvWinAnalyzer
                 if (dataType != "int") continue;
 
                 int max = 0;
-                var lines = _csvFiles.ReadFile(path,encoding,true);
+                var lines = _csvFiles.ReadFile(path, encoding, true);
                 foreach (var line in lines)
                 {
                     if (line is null) continue;
@@ -282,12 +283,12 @@ namespace CsvWinAnalyzer
             try
             {
 
-                var file = _csvFiles.GetFile(p,Encoding.Default,true);
+                var file = _csvFiles.GetFile(p, Encoding.Default, true);
                 file.SavePartialAs(p, d.FileName, ';', Encoding.Default, headers.Select(c => int.Parse(c.Text) - 1).ToArray());
                 StopWaiting();
                 ShowInfo("Successfully exported!");
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 StopWaiting();
                 ShowError($"Error: {ex.Message}");
@@ -310,13 +311,13 @@ namespace CsvWinAnalyzer
 
         private string SourcePath { get => txtFilePath.Text; }
         private List<ListViewItem> SelectedHeaders { get => lvwHeader.SelectedItems.Cast<ListViewItem>().ToList(); }
-        private List<int> SelectedColumns { get => SelectedHeaders.Select(l=>int.Parse(l.Text)+1).ToList(); }
+        private List<int> SelectedColumns { get => SelectedHeaders.Select(l => int.Parse(l.Text) + 1).ToList(); }
 
 
         #region Utility functions
 
         void ShowInfo(string message) =>
-            MessageBox.Show(message,"CSV Analyzer",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            MessageBox.Show(message, "CSV Analyzer", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         void ShowWarning(string message) =>
             MessageBox.Show(message, "CSV Analyzer", MessageBoxButtons.OK, MessageBoxIcon.Warning);

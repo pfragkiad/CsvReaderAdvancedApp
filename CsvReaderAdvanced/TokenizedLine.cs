@@ -122,9 +122,9 @@ public struct TokenizedLine
     }
 
     public readonly ParsedValue<bool> GetBool(string fieldName, Dictionary<string, int> columns)
-        => GetBool(columns[fieldName]);
+        => GetBoolean(columns[fieldName]);
 
-    public readonly ParsedValue<bool> GetBool(int column)
+    public readonly ParsedValue<bool> GetBoolean(int column)
     {
         string sValue = Tokens[column];
         if (sValue == "") return ParsedValue<bool>.Null;

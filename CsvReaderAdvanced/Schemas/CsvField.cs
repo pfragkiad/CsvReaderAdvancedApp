@@ -1,5 +1,20 @@
 ﻿namespace CsvReaderAdvanced.Schemas;
 
+
+public class CsvFieldStats
+{
+    public BaseType BaseType { get; set; }
+
+    public int ValuesCount { get; set; }
+    public int NullValuesCount { get; set; }
+    public int UnparsedValuesCount { get; set; }
+
+    public object? Minimum { get; set; }
+
+    public object? Maximum { get; set; }
+}
+
+
 public class CsvField
 {
     public string Name { get; init; } = default!;
