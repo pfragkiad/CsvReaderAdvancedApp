@@ -16,7 +16,7 @@ namespace CsvReaderAdvanced.Interfaces
         void CheckAgainstSchema(CsvSchema schema);
         bool ConfirmAssumedType(int column, string path, Encoding encoding, BaseType assumedType, bool hasHeader = true, int maxRows = int.MaxValue);
         void Dispose();
-        BaseType GetBaseType(int column, string path, Encoding encoding, BaseType assumedType = BaseType.Unknown, bool hasHeader = true, int maxRows = int.MaxValue);
+        BaseType GetBaseType(int column, string path, Encoding encoding, BaseType assumedType = BaseType.Unknown, bool hasHeader = true, int maxRows = int.MaxValue, string? dateTimeFormat = null, string? dateTimeOffsetFormat = null);
         CsvFieldStats GetFieldStats(int column, string path, Encoding encoding, BaseType assumedType, bool hasHeader = true, int maxRows = int.MaxValue);
         void PopulateColumns();
         IEnumerable<TokenizedLine?> Read(string path, Encoding encoding, bool skipHeader);

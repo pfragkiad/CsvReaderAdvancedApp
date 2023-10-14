@@ -3,6 +3,8 @@ using CsvReaderAdvanced.Interfaces;
 using CsvReaderAdvanced.Schemas;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace CsvWinAnalyzer
@@ -42,19 +44,19 @@ namespace CsvWinAnalyzer
             //Cursor.Current = Cursors.Default;
         }
 
-        private void CountLines()
-        {
-            int count = 0; int nonEmptyLines = 0;
-            using StreamReader reader = new StreamReader(txtFilePath.Text, Encoding.UTF8);
-            while (!reader.EndOfStream)
-            {
-                string? line = reader.ReadLine();
-                if (line is null) break;
-                count++;
-                if (line.Length > 0) nonEmptyLines++;
-            }
-            tstStatus.Text = $"Lines: {count}, Non-empty Lines: {nonEmptyLines}";
-        }
+        //private void CountLines()
+        //{
+        //    int count = 0; int nonEmptyLines = 0;
+        //    using StreamReader reader = new StreamReader(txtFilePath.Text, Encoding.UTF8);
+        //    while (!reader.EndOfStream)
+        //    {
+        //        string? line = reader.ReadLine();
+        //        if (line is null) break;
+        //        count++;
+        //        if (line.Length > 0) nonEmptyLines++;
+        //    }
+        //    tstStatus.Text = $"Lines: {count}, Non-empty Lines: {nonEmptyLines}";
+        //}
 
         protected override void OnClosing(CancelEventArgs e)
         {
@@ -70,9 +72,6 @@ namespace CsvWinAnalyzer
         private void btnReadHeader_Click(object sender, EventArgs e)
         {
             ReadHeader();
-
-
-            //file.ReadFromFile(txtFilePath.Text, System.Text.Encoding.UTF8);            
         }
 
         private void ReadHeader()
@@ -93,36 +92,23 @@ namespace CsvWinAnalyzer
 
         enum Types { Unknown, Integer, Float, DateTime, String }
 
-        private void mnuFindDataType_Click(object sender, EventArgs e)
+
+
+        private static void SetSubItem(ListViewItem item, int index, string text)
         {
-            if (lvwHeader.SelectedItems.Count == 0) return;
-
-            string path = txtFilePath.Text;
-            var encoding = Encoding.UTF8;
-
-            var file = _csvFiles.GetFile(txtFilePath.Text, Encoding.UTF8, true);
-
-            int maxRows = 100;
-
-            lvwHeader.SuspendLayout();
-
-            foreach (var item in SelectedHeaders)
-            {
-                int column = int.Parse(item.Text) - 1;
-                var dataType = file.GetBaseType(column, path, encoding, BaseType.Unknown, true, maxRows);
-                SetDataType(item, dataType.ToString());
-            }
-            lvwHeader.ResumeLayout();
-
-        }
-
-        private static void SetDataType(ListViewItem item, string dataType)
-        {
-            if (item.SubItems.Count < 3)
-                item.SubItems.Add(dataType);
+            if (item.SubItems.Count < index + 1)
+                item.SubItems.Add(text);
             else
-                item.SubItems[2].Text = dataType;
+                item.SubItems[index].Text = text;
         }
+
+        private static void SetDataType(ListViewItem item, BaseType dataType)
+        {
+            SetSubItem(item, 2, dataType.ToString());
+            item.ForeColor = dataType == BaseType.Unknown ? Color.Red : Color.Blue;
+            item.Tag = dataType;
+        }
+
 
         private void lvwHeader_KeyDown(object sender, KeyEventArgs e)
         {
@@ -131,122 +117,6 @@ namespace CsvWinAnalyzer
                     item.Selected = true;
         }
 
-        private void mnuFindMax_Click(object sender, EventArgs e)
-        {
-            tstStatus.Text = "Processing..."; statusStrip1.Refresh();
-            Cursor.Current = Cursors.WaitCursor;
-            CheckForStringMax();
-
-            CheckForIntMax();
-
-            CheckForFloatMax();
-
-            tstStatus.Text = "OK";
-            Cursor.Current = Cursors.Default;
-        }
-
-        private void CheckForIntMax()
-        {
-            string path = txtFilePath.Text;
-            var encoding = Encoding.UTF8;
-
-            //int
-            foreach (ListViewItem item in lvwHeader.SelectedItems)
-            {
-                int column = int.Parse(item.Text) - 1;
-                string dataType = item.SubItems[2].Text;
-
-                if (dataType != "int") continue;
-
-                int max = 0;
-                var lines = _csvFiles.ReadFile(path, encoding, true);
-                foreach (var line in lines)
-                {
-                    if (line is null) continue;
-                    var tokenizedLine = line.Value;
-
-                    var l = tokenizedLine.GetInt(column);
-                    if (!l.IsParsed) throw new InvalidOperationException("Wrong data type!");
-                    if (l.Value > max) max = l;
-                }
-
-                if (item.SubItems.Count < 4)
-                    item.SubItems.Add(max.ToString());
-                else
-                    item.SubItems[2].Text = max.ToString();
-                lvwHeader.Refresh();
-            }
-        }
-
-        private void CheckForFloatMax()
-        {
-            string path = txtFilePath.Text;
-            var encoding = Encoding.UTF8;
-
-            //int
-            foreach (ListViewItem item in lvwHeader.SelectedItems)
-            {
-                int column = int.Parse(item.Text) - 1;
-                string dataType = item.SubItems[2].Text;
-
-                if (dataType != "float") continue;
-
-                float max = 0;
-                var lines = _csvFiles.ReadFile(path, encoding, true);
-                foreach (var line in lines)
-                {
-                    if (line is null) continue;
-                    var tokenizedLine = line.Value;
-
-                    var l = tokenizedLine.GetFloat(column);
-                    if (!l.IsParsed) throw new InvalidOperationException("Wrong data type!");
-                    if (l.Value > max) max = l;
-                }
-
-                if (item.SubItems.Count < 4)
-                    item.SubItems.Add(max.ToString());
-                else
-                    item.SubItems[2].Text = max.ToString();
-                lvwHeader.Refresh();
-            }
-        }
-
-        private void CheckForStringMax()
-        {
-            string path = txtFilePath.Text;
-            var encoding = Encoding.UTF8;
-
-            foreach (ListViewItem item in lvwHeader.SelectedItems)
-            {
-                int column = int.Parse(item.Text) - 1;
-                string dataType = item.SubItems[2].Text;
-
-                if (dataType != "string") continue;
-
-                int max = 0;
-
-                var lines = _csvFiles.ReadFile(path, encoding, true);
-                foreach (var line in lines)
-                {
-                    if (line is null) continue;
-                    var tokenizedLine = line.Value;
-
-                    int l = tokenizedLine.Tokens[column].Length;
-                    if (l > max) max = l;
-                }
-
-                if (item.SubItems.Count < 4)
-                    item.SubItems.Add(max.ToString());
-                else
-                    item.SubItems[2].Text = max.ToString();
-                lvwHeader.Refresh();
-            }
-        }
-
-        private void frmMain_Load(object sender, EventArgs e)
-        {
-
-        }
 
         private void btnExport_Click(object sender, EventArgs e)
         {
@@ -311,7 +181,10 @@ namespace CsvWinAnalyzer
 
         private string SourcePath { get => txtFilePath.Text; }
         private List<ListViewItem> SelectedHeaders { get => lvwHeader.SelectedItems.Cast<ListViewItem>().ToList(); }
-        private List<int> SelectedColumns { get => SelectedHeaders.Select(l => int.Parse(l.Text) + 1).ToList(); }
+
+        private List<ListViewItem> AllHeaders { get => lvwHeader.Items.Cast<ListViewItem>().ToList(); }
+
+        private List<int> SelectedColumns { get => SelectedHeaders.Select(l => int.Parse(l.Text) - 1).ToList(); }
 
 
         #region Utility functions
@@ -330,5 +203,204 @@ namespace CsvWinAnalyzer
 
 
         #endregion
+
+
+        #region Analyze fields
+
+        private void mnuAnalyze_Click(object sender, EventArgs e)
+        {
+            AnalyzeHeaders(SelectedHeaders);
+
+        }
+
+        private void btnAnalyzeAllField_Click(object sender, EventArgs e)
+        {
+            AnalyzeHeaders(AllHeaders);
+        }
+
+ 
+        private void AnalyzeHeaders(IEnumerable<ListViewItem> items)
+        {
+            Wait();
+
+
+            //if (SelectedColumns.Count == 0) return;
+
+            //ListViewItem selectedItem = SelectedHeaders[0];
+            //int column = SelectedColumns[0];
+            //string columnName = selectedItem.SubItems[1].Text;
+            string path = txtFilePath.Text;
+            var encoding = Encoding.UTF8;
+
+            foreach (var item in items)
+            {
+                item.EnsureVisible();
+
+                var file = _csvFiles.GetFile(path, encoding, true);
+                int column = int.Parse(item.Text) - 1;
+                string columnName = item.SubItems[1].Text;
+
+                if (item.Tag is null)
+                {
+                    var dataType = file.GetBaseType(column, path, encoding, BaseType.Unknown, true);
+                    SetDataType(item, dataType);
+                }
+
+                BaseType assumedType = (BaseType)item.Tag!;
+                tstStatus.Text = $"Analyzing [{columnName}]..."; statusStrip1.Refresh();
+
+                if (assumedType == BaseType.Unknown)
+                {
+                    var dataType = file.GetBaseType(column, path, encoding, BaseType.Unknown, true);
+                    SetDataType(item, dataType);
+                }
+
+                //lblDataType.Text = assumedType.ToString();
+                if (assumedType == BaseType.Unknown)
+                {
+                    //lblAllValues.Text = lblMax.Text = lblMin.Text = lblNullValues.Text = lblUnparsedValues.Text = "-";
+                    SetSubItem(item, 3, "-");
+                    SetSubItem(item, 4, "-");
+                    SetSubItem(item, 5, "-");
+                    SetSubItem(item, 6, "-");
+                    SetSubItem(item, 7, "-");
+                }
+                else
+                {
+                    var stats = file.GetFieldStats(column, path, encoding, assumedType);
+
+                    SetSubItem(item, 3, stats.Minimum?.ToString() ?? "-");
+                    SetSubItem(item, 4, stats.Maximum?.ToString() ?? "-");
+                    SetSubItem(item, 5, stats.ValuesCount.ToString());
+                    SetSubItem(item, 6, stats.NullValuesCount.ToString());
+                    SetSubItem(item, 7, stats.UnparsedValuesCount.ToString());
+
+                    //lblAllValues.Text = stats.ValuesCount.ToString();
+                    //lblUnparsedValues.Text = stats.UnparsedValuesCount.ToString();
+                    //lblNullValues.Text = stats.NullValuesCount.ToString();
+                    //lblMin.Text = stats.Minimum?.ToString() ?? "-";
+                    //lblMax.Text = stats.Maximum?.ToString() ?? "-";
+                }
+
+                lvwHeader.Refresh();
+            }
+
+            lvwHeader.SuspendLayout();
+
+            foreach (var col in lvwHeader.Columns.Cast<ColumnHeader>())
+            {
+                col.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                if (col.Width < 80) col.Width = 80;
+            }
+
+            lvwHeader.ResumeLayout();
+
+            tstStatus.Text = "OK";
+            StopWaiting();
+        }
+
+        #endregion
+
+
+        #region Change data types (menu)
+        private void mnuBoolean_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.Boolean);
+        }
+
+        private void mnuInteger_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.Integer);
+        }
+
+        private void mnuLong_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.Long);
+
+        }
+
+        private void mnuFloat_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.Float);
+
+        }
+
+        private void mnuDouble_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.Double);
+
+        }
+
+        private void mnuDateTime_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.DateTime);
+
+        }
+
+        private void mnuDateTimeOffset_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.DateTimeOffset);
+
+        }
+
+        private void mnuString_Click(object sender, EventArgs e)
+        {
+            foreach (var item in SelectedHeaders)
+                SetDataType(item, BaseType.String);
+
+        }
+        #endregion
+
+        #region Find data types
+
+        private void btnFindDataTypes_Click(object sender, EventArgs e)
+        {
+            FindDataTypes(AllHeaders);
+        }
+
+        private void mnuFindDataTypeFast_Click(object sender, EventArgs e)
+        {
+            FindDataTypes(SelectedHeaders, 200);
+
+        }
+
+        private void mnuFindDataType_Click(object sender, EventArgs e)
+        {
+            FindDataTypes(SelectedHeaders);
+        }
+
+        private void FindDataTypes(IEnumerable<ListViewItem> items, int maxRows = int.MaxValue)
+        {
+            if (lvwHeader.SelectedItems.Count == 0) return;
+
+            Wait();
+            string path = txtFilePath.Text;
+            var encoding = Encoding.UTF8;
+            var file = _csvFiles.GetFile(txtFilePath.Text, Encoding.UTF8, true);
+
+            foreach (var item in items)
+            {
+                int column = int.Parse(item.Text) - 1;
+                string columnName = item.SubItems[1].Text;
+                tstStatus.Text = $"Processing [{columnName}] data..."; statusStrip1.Refresh();
+
+                var dataType = file.GetBaseType(column, path, encoding, BaseType.Unknown, true, maxRows);
+                SetDataType(item, dataType);
+            }
+
+            tstStatus.Text = "OK";
+
+            StopWaiting();
+        }
+        #endregion
+
+ 
     }
 }

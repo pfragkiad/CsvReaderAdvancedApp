@@ -14,7 +14,7 @@ public readonly struct ParsedValue<T> where T : struct
 
     public bool IsParsed { get; init; }
 
-    public bool IsNull => Value is null; 
+    public bool IsNull => Value is null && !IsParsed; 
 
     public static implicit operator T?(ParsedValue<T> v)
     {

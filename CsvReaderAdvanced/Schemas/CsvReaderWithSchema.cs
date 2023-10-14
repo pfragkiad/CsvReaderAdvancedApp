@@ -12,12 +12,12 @@ namespace CsvReaderAdvanced.Schemas;
 
 public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
 {
-    protected readonly ICsvFile _file;
+    protected readonly CsvFile _file;
     protected readonly ILogger _logger;
     protected readonly CsvSchemaOptions _options;
 
     public CsvReaderWithSchema(
-        ICsvFile file,
+        CsvFile file,
         ILogger logger,
         IOptions<CsvSchemaOptions> options)
     {

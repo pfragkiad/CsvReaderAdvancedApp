@@ -203,7 +203,9 @@ public class CsvFile : ICsvFile, IDisposable
         Encoding encoding,
         BaseType assumedType = BaseType.Unknown,
         bool hasHeader = true,
-        int maxRows = int.MaxValue)
+        int maxRows = int.MaxValue,
+        string? dateTimeFormat = null,
+        string? dateTimeOffsetFormat = null)
     {
         int iRow = 0;
 
@@ -236,11 +238,14 @@ public class CsvFile : ICsvFile, IDisposable
             assumedType = BaseType.Double;
             if (assumedType == BaseType.Double && tokenizedLine.GetDouble(column, CultureInfo.InvariantCulture).IsParsed) continue;
 
-            assumedType = BaseType.DateTimeOffset;
-            if (assumedType == BaseType.DateTimeOffset && tokenizedLine.GetDateTimeOffset(column, CultureInfo.InvariantCulture, "yyyy-MM-dd").IsParsed) continue;
-
+            //format should be passed for datetime formats
             assumedType = BaseType.DateTime;
-            if (assumedType == BaseType.DateTime && tokenizedLine.GetDateTime(column, CultureInfo.InvariantCulture, "yyyy-MM-dd").IsParsed) continue;
+            if (assumedType == BaseType.DateTime && tokenizedLine.GetDateTime(column, CultureInfo.InvariantCulture, dateTimeFormat).IsParsed) continue;
+
+            //2022-01-31T00:00:00+00:00
+            assumedType = BaseType.DateTimeOffset;
+            if (assumedType == BaseType.DateTimeOffset && tokenizedLine.GetDateTimeOffset(column, CultureInfo.InvariantCulture, dateTimeOffsetFormat).IsParsed) continue;
+
             //assumedType = BaseType.String;
             return BaseType.String; //no need to continue looping from here
         }
@@ -318,17 +323,18 @@ public class CsvFile : ICsvFile, IDisposable
             if (assumedType == BaseType.Integer)
             {
                 var value = t.GetInt(column);
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
                 if (value.IsNull)
                 {
                     nullValues++;
                     continue;
                 }
 
-                if (!value.IsParsed)
-                {
-                    unparsedValues++;
-                    continue;
-                }
 
                 if (!initialized)
                 {
@@ -368,17 +374,18 @@ public class CsvFile : ICsvFile, IDisposable
             else if (assumedType == BaseType.Float)
             {
                 var value = t.GetFloat(column);
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+             
                 if (value.IsNull)
                 {
                     nullValues++;
                     continue;
                 }
 
-                if (!value.IsParsed)
-                {
-                    unparsedValues++;
-                    continue;
-                }
 
                 if (!initialized)
                 {
@@ -392,17 +399,18 @@ public class CsvFile : ICsvFile, IDisposable
             else if (assumedType == BaseType.Double)
             {
                 var value = t.GetDouble(column);
-                if (value.IsNull)
+                 if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+               if (value.IsNull)
                 {
                     nullValues++;
                     continue;
                 }
 
-                if (!value.IsParsed)
-                {
-                    unparsedValues++;
-                    continue;
-                }
 
                 if (!initialized)
                 {
@@ -416,17 +424,18 @@ public class CsvFile : ICsvFile, IDisposable
             else if (assumedType == BaseType.Long)
             {
                 var value = t.GetLong(column);
-                if (value.IsNull)
+                 if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
+               if (value.IsNull)
                 {
                     nullValues++;
                     continue;
                 }
 
-                if (!value.IsParsed)
-                {
-                    unparsedValues++;
-                    continue;
-                }
 
                 if (!initialized)
                 {
@@ -441,17 +450,18 @@ public class CsvFile : ICsvFile, IDisposable
             else if (assumedType == BaseType.DateTimeOffset)
             {
                 var value = t.GetDateTimeOffset(column);
+                if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+
                 if (value.IsNull)
                 {
                     nullValues++;
                     continue;
                 }
 
-                if (!value.IsParsed)
-                {
-                    unparsedValues++;
-                    continue;
-                }
 
                 if (!initialized)
                 {
@@ -465,17 +475,17 @@ public class CsvFile : ICsvFile, IDisposable
             else if (assumedType == BaseType.DateTime)
             {
                 var value = t.GetDateTime(column);
-                if (value.IsNull)
+                 if (!value.IsParsed)
+                {
+                    unparsedValues++;
+                    continue;
+                }
+               if (value.IsNull)
                 {
                     nullValues++;
                     continue;
                 }
 
-                if (!value.IsParsed)
-                {
-                    unparsedValues++;
-                    continue;
-                }
 
                 if (!initialized)
                 {
@@ -489,15 +499,16 @@ public class CsvFile : ICsvFile, IDisposable
             else if (assumedType == BaseType.Boolean)
             {
                 var value = t.GetBoolean(column);
-                if (value.IsNull)
-                {
-                    nullValues++;
-                    continue;
-                }
 
                 if (!value.IsParsed)
                 {
                     unparsedValues++;
+                    continue;
+                }
+
+                if (value.IsNull)
+                {
+                    nullValues++;
                     continue;
                 }
 
@@ -514,15 +525,57 @@ public class CsvFile : ICsvFile, IDisposable
 
         }
 
-        return new CsvFieldStats()
+        var stats = new CsvFieldStats()
         {
             BaseType = assumedType,
-            Minimum = initialized ? min : null,
-            Maximum = initialized ? max : null,
             ValuesCount = allValues,
             NullValuesCount = nullValues,
             UnparsedValuesCount = unparsedValues
         };
+        if (assumedType == BaseType.Integer && initialized)
+        {
+            stats.Minimum = initialized ? min : null;
+            stats.Maximum = initialized ? max : null;
+        }
+        else if (assumedType == BaseType.Long && initialized)
+        {
+            stats.Minimum = initialized ? minL : null;
+            stats.Maximum = initialized ? maxL : null;
+        }
+        else if (assumedType == BaseType.Float && initialized)
+        {
+            stats.Minimum = initialized ? minF : null;
+            stats.Maximum = initialized ? maxF : null;
+
+        }
+        else if (assumedType == BaseType.Double && initialized)
+        {
+            stats.Minimum = initialized ? minD : null;
+            stats.Maximum = initialized ? maxD : null;
+        }
+        else if (assumedType == BaseType.DateTimeOffset && initialized)
+        {
+            stats.Minimum = initialized ? minDto : null;
+            stats.Maximum = initialized ? maxDto : null;
+        }
+        else if (assumedType == BaseType.DateTime && initialized)
+        {
+            stats.Minimum = initialized ? minDt : null;
+            stats.Maximum = initialized ? maxDt : null;
+        }
+        else if (assumedType == BaseType.String && initialized)
+        {
+            stats.Minimum = initialized ? minLength : null;
+            stats.Maximum = initialized ? maxLength : null;
+        }
+
+        //else if (assumedType == BaseType.Boolean && initialized)
+        //{
+        //    stats.Minimum = initialized ? minDt : null;
+        //    stats.Maximum = initialized ? maxDt : null;
+        //}
+
+        return stats;
     }
 
     #endregion

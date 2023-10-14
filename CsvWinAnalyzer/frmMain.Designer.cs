@@ -37,30 +37,32 @@
             colIndex = new ColumnHeader();
             colColumnName = new ColumnHeader();
             colDataType = new ColumnHeader();
+            colMin = new ColumnHeader();
             colMax = new ColumnHeader();
+            colAllValues = new ColumnHeader();
+            colNullValues = new ColumnHeader();
+            colUnparsedValues = new ColumnHeader();
             mnuField = new ContextMenuStrip(components);
+            mnuFindDataTypeFast = new ToolStripMenuItem();
             mnuFindDataType = new ToolStripMenuItem();
-            mnuFindMax = new ToolStripMenuItem();
+            mnuChangeDataType = new ToolStripMenuItem();
+            mnuBoolean = new ToolStripMenuItem();
+            mnuInteger = new ToolStripMenuItem();
+            mnuLong = new ToolStripMenuItem();
+            mnuFloat = new ToolStripMenuItem();
+            mnuDouble = new ToolStripMenuItem();
+            mnuDateTime = new ToolStripMenuItem();
+            mnuDateTimeOffset = new ToolStripMenuItem();
+            mnuString = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tstStatus = new ToolStripStatusLabel();
             btnExport = new Button();
-            grpField = new GroupBox();
-            label2 = new Label();
-            label3 = new Label();
-            label4 = new Label();
-            label5 = new Label();
-            label6 = new Label();
-            label7 = new Label();
-            lblDataType = new Label();
-            lblAllValues = new Label();
-            lblNullValues = new Label();
-            lblNonNullValues = new Label();
-            lblMin = new Label();
-            lblMax = new Label();
-            btnAnalyzeField = new Button();
+            btnAnalyzeAllField = new Button();
+            btnFindDataTypes = new Button();
+            toolStripMenuItem1 = new ToolStripSeparator();
+            mnuAnalyze = new ToolStripMenuItem();
             mnuField.SuspendLayout();
             statusStrip1.SuspendLayout();
-            grpField.SuspendLayout();
             SuspendLayout();
             // 
             // txtFilePath
@@ -68,13 +70,13 @@
             txtFilePath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtFilePath.Location = new Point(88, 35);
             txtFilePath.Name = "txtFilePath";
-            txtFilePath.Size = new Size(746, 23);
+            txtFilePath.Size = new Size(1099, 23);
             txtFilePath.TabIndex = 0;
             // 
             // btnBrowse
             // 
             btnBrowse.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowse.Location = new Point(759, 64);
+            btnBrowse.Location = new Point(1112, 64);
             btnBrowse.Name = "btnBrowse";
             btnBrowse.Size = new Size(75, 23);
             btnBrowse.TabIndex = 1;
@@ -99,13 +101,13 @@
             // 
             // lvwHeader
             // 
-            lvwHeader.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            lvwHeader.Columns.AddRange(new ColumnHeader[] { colIndex, colColumnName, colDataType, colMax });
+            lvwHeader.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lvwHeader.Columns.AddRange(new ColumnHeader[] { colIndex, colColumnName, colDataType, colMin, colMax, colAllValues, colNullValues, colUnparsedValues });
             lvwHeader.ContextMenuStrip = mnuField;
             lvwHeader.FullRowSelect = true;
             lvwHeader.Location = new Point(88, 93);
             lvwHeader.Name = "lvwHeader";
-            lvwHeader.Size = new Size(435, 336);
+            lvwHeader.Size = new Size(1099, 313);
             lvwHeader.TabIndex = 5;
             lvwHeader.UseCompatibleStateImageBehavior = false;
             lvwHeader.View = View.Details;
@@ -124,37 +126,116 @@
             // 
             colDataType.Text = "Type";
             // 
+            // colMin
+            // 
+            colMin.Text = "Min";
+            // 
             // colMax
             // 
-            colMax.Text = "Max/Max length";
-            colMax.Width = 100;
+            colMax.Text = "Max";
+            // 
+            // colAllValues
+            // 
+            colAllValues.Text = "All #";
+            // 
+            // colNullValues
+            // 
+            colNullValues.Text = "Null #";
+            // 
+            // colUnparsedValues
+            // 
+            colUnparsedValues.Text = "Unparsed #";
+            colUnparsedValues.Width = 80;
             // 
             // mnuField
             // 
-            mnuField.Items.AddRange(new ToolStripItem[] { mnuFindDataType, mnuFindMax });
+            mnuField.Items.AddRange(new ToolStripItem[] { mnuFindDataTypeFast, mnuFindDataType, mnuChangeDataType, toolStripMenuItem1, mnuAnalyze });
             mnuField.Name = "mnuField";
-            mnuField.Size = new Size(189, 48);
+            mnuField.Size = new Size(189, 120);
+            // 
+            // mnuFindDataTypeFast
+            // 
+            mnuFindDataTypeFast.Name = "mnuFindDataTypeFast";
+            mnuFindDataTypeFast.Size = new Size(188, 22);
+            mnuFindDataTypeFast.Text = "Find data type (fast)...";
+            mnuFindDataTypeFast.Click += mnuFindDataTypeFast_Click;
             // 
             // mnuFindDataType
             // 
             mnuFindDataType.Name = "mnuFindDataType";
             mnuFindDataType.Size = new Size(188, 22);
-            mnuFindDataType.Text = "Find data type (fast)...";
+            mnuFindDataType.Text = "Find data type...";
             mnuFindDataType.Click += mnuFindDataType_Click;
             // 
-            // mnuFindMax
+            // mnuChangeDataType
             // 
-            mnuFindMax.Name = "mnuFindMax";
-            mnuFindMax.Size = new Size(188, 22);
-            mnuFindMax.Text = "Fill max...";
-            mnuFindMax.Click += mnuFindMax_Click;
+            mnuChangeDataType.DropDownItems.AddRange(new ToolStripItem[] { mnuBoolean, mnuInteger, mnuLong, mnuFloat, mnuDouble, mnuDateTime, mnuDateTimeOffset, mnuString });
+            mnuChangeDataType.Name = "mnuChangeDataType";
+            mnuChangeDataType.Size = new Size(188, 22);
+            mnuChangeDataType.Text = "Change data type to";
+            // 
+            // mnuBoolean
+            // 
+            mnuBoolean.Name = "mnuBoolean";
+            mnuBoolean.Size = new Size(156, 22);
+            mnuBoolean.Text = "Boolean";
+            mnuBoolean.Click += mnuBoolean_Click;
+            // 
+            // mnuInteger
+            // 
+            mnuInteger.Name = "mnuInteger";
+            mnuInteger.Size = new Size(156, 22);
+            mnuInteger.Text = "Integer";
+            mnuInteger.Click += mnuInteger_Click;
+            // 
+            // mnuLong
+            // 
+            mnuLong.Name = "mnuLong";
+            mnuLong.Size = new Size(156, 22);
+            mnuLong.Text = "Long";
+            mnuLong.Click += mnuLong_Click;
+            // 
+            // mnuFloat
+            // 
+            mnuFloat.Name = "mnuFloat";
+            mnuFloat.Size = new Size(156, 22);
+            mnuFloat.Text = "Float";
+            mnuFloat.Click += mnuFloat_Click;
+            // 
+            // mnuDouble
+            // 
+            mnuDouble.Name = "mnuDouble";
+            mnuDouble.Size = new Size(156, 22);
+            mnuDouble.Text = "Double";
+            mnuDouble.Click += mnuDouble_Click;
+            // 
+            // mnuDateTime
+            // 
+            mnuDateTime.Name = "mnuDateTime";
+            mnuDateTime.Size = new Size(156, 22);
+            mnuDateTime.Text = "DateTime";
+            mnuDateTime.Click += mnuDateTime_Click;
+            // 
+            // mnuDateTimeOffset
+            // 
+            mnuDateTimeOffset.Name = "mnuDateTimeOffset";
+            mnuDateTimeOffset.Size = new Size(156, 22);
+            mnuDateTimeOffset.Text = "DateTimeOffset";
+            mnuDateTimeOffset.Click += mnuDateTimeOffset_Click;
+            // 
+            // mnuString
+            // 
+            mnuString.Name = "mnuString";
+            mnuString.Size = new Size(156, 22);
+            mnuString.Text = "String";
+            mnuString.Click += mnuString_Click;
             // 
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { tstStatus });
             statusStrip1.Location = new Point(0, 485);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(869, 22);
+            statusStrip1.Size = new Size(1222, 22);
             statusStrip1.TabIndex = 6;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -167,166 +248,54 @@
             // btnExport
             // 
             btnExport.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnExport.Location = new Point(88, 444);
+            btnExport.Location = new Point(88, 426);
             btnExport.Name = "btnExport";
-            btnExport.Size = new Size(75, 23);
+            btnExport.Size = new Size(100, 41);
             btnExport.TabIndex = 1;
             btnExport.Text = "Export...";
             btnExport.UseVisualStyleBackColor = true;
             btnExport.Click += btnExport_Click;
             // 
-            // grpField
+            // btnAnalyzeAllField
             // 
-            grpField.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            grpField.Controls.Add(btnAnalyzeField);
-            grpField.Controls.Add(lblMax);
-            grpField.Controls.Add(lblMin);
-            grpField.Controls.Add(lblNonNullValues);
-            grpField.Controls.Add(lblNullValues);
-            grpField.Controls.Add(lblAllValues);
-            grpField.Controls.Add(lblDataType);
-            grpField.Controls.Add(label4);
-            grpField.Controls.Add(label7);
-            grpField.Controls.Add(label3);
-            grpField.Controls.Add(label6);
-            grpField.Controls.Add(label5);
-            grpField.Controls.Add(label2);
-            grpField.Location = new Point(544, 93);
-            grpField.Name = "grpField";
-            grpField.Size = new Size(290, 336);
-            grpField.TabIndex = 7;
-            grpField.TabStop = false;
-            grpField.Text = "Field properties";
+            btnAnalyzeAllField.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnAnalyzeAllField.Location = new Point(300, 426);
+            btnAnalyzeAllField.Name = "btnAnalyzeAllField";
+            btnAnalyzeAllField.Size = new Size(100, 41);
+            btnAnalyzeAllField.TabIndex = 2;
+            btnAnalyzeAllField.Text = "Analyze all...";
+            btnAnalyzeAllField.UseVisualStyleBackColor = true;
+            btnAnalyzeAllField.Click += btnAnalyzeAllField_Click;
             // 
-            // label2
+            // btnFindDataTypes
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(17, 157);
-            label2.Name = "label2";
-            label2.Size = new Size(97, 15);
-            label2.TabIndex = 0;
-            label2.Text = "Non-null values: ";
+            btnFindDataTypes.Location = new Point(194, 426);
+            btnFindDataTypes.Name = "btnFindDataTypes";
+            btnFindDataTypes.Size = new Size(100, 41);
+            btnFindDataTypes.TabIndex = 7;
+            btnFindDataTypes.Text = "Find all data types...";
+            btnFindDataTypes.UseVisualStyleBackColor = true;
+            btnFindDataTypes.Click += btnFindDataTypes_Click;
             // 
-            // label3
+            // toolStripMenuItem1
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(17, 83);
-            label3.Name = "label3";
-            label3.Size = new Size(63, 15);
-            label3.TabIndex = 0;
-            label3.Text = "All values: ";
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(185, 6);
             // 
-            // label4
+            // mnuAnalyze
             // 
-            label4.AutoSize = true;
-            label4.Location = new Point(17, 119);
-            label4.Name = "label4";
-            label4.Size = new Size(68, 15);
-            label4.TabIndex = 0;
-            label4.Text = "Null values:";
-            // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Location = new Point(17, 196);
-            label5.Name = "label5";
-            label5.Size = new Size(126, 15);
-            label5.TabIndex = 0;
-            label5.Text = "Minimum/min length:";
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Location = new Point(17, 239);
-            label6.Name = "label6";
-            label6.Size = new Size(130, 15);
-            label6.TabIndex = 0;
-            label6.Text = "Maximum/max length:";
-            // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Location = new Point(17, 45);
-            label7.Name = "label7";
-            label7.Size = new Size(60, 15);
-            label7.TabIndex = 0;
-            label7.Text = "Data type:";
-            // 
-            // lblDataType
-            // 
-            lblDataType.AutoSize = true;
-            lblDataType.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
-            lblDataType.Location = new Point(171, 45);
-            lblDataType.Name = "lblDataType";
-            lblDataType.Size = new Size(22, 17);
-            lblDataType.TabIndex = 1;
-            lblDataType.Text = "int";
-            // 
-            // lblAllValues
-            // 
-            lblAllValues.AutoSize = true;
-            lblAllValues.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
-            lblAllValues.Location = new Point(171, 83);
-            lblAllValues.Name = "lblAllValues";
-            lblAllValues.Size = new Size(36, 17);
-            lblAllValues.TabIndex = 1;
-            lblAllValues.Text = "1000";
-            // 
-            // lblNullValues
-            // 
-            lblNullValues.AutoSize = true;
-            lblNullValues.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
-            lblNullValues.Location = new Point(171, 119);
-            lblNullValues.Name = "lblNullValues";
-            lblNullValues.Size = new Size(36, 17);
-            lblNullValues.TabIndex = 1;
-            lblNullValues.Text = "1000";
-            // 
-            // lblNonNullValues
-            // 
-            lblNonNullValues.AutoSize = true;
-            lblNonNullValues.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
-            lblNonNullValues.Location = new Point(171, 157);
-            lblNonNullValues.Name = "lblNonNullValues";
-            lblNonNullValues.Size = new Size(36, 17);
-            lblNonNullValues.TabIndex = 1;
-            lblNonNullValues.Text = "1000";
-            // 
-            // lblMin
-            // 
-            lblMin.AutoSize = true;
-            lblMin.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
-            lblMin.Location = new Point(171, 196);
-            lblMin.Name = "lblMin";
-            lblMin.Size = new Size(36, 17);
-            lblMin.TabIndex = 1;
-            lblMin.Text = "1000";
-            // 
-            // lblMax
-            // 
-            lblMax.AutoSize = true;
-            lblMax.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
-            lblMax.Location = new Point(171, 237);
-            lblMax.Name = "lblMax";
-            lblMax.Size = new Size(36, 17);
-            lblMax.TabIndex = 1;
-            lblMax.Text = "1000";
-            // 
-            // btnAnalyzeField
-            // 
-            btnAnalyzeField.Location = new Point(17, 298);
-            btnAnalyzeField.Name = "btnAnalyzeField";
-            btnAnalyzeField.Size = new Size(75, 23);
-            btnAnalyzeField.TabIndex = 2;
-            btnAnalyzeField.Text = "Analyze...";
-            btnAnalyzeField.UseVisualStyleBackColor = true;
+            mnuAnalyze.Name = "mnuAnalyze";
+            mnuAnalyze.Size = new Size(188, 22);
+            mnuAnalyze.Text = "Analyze...";
+            mnuAnalyze.Click += mnuAnalyze_Click;
             // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(869, 507);
-            Controls.Add(grpField);
+            ClientSize = new Size(1222, 507);
+            Controls.Add(btnFindDataTypes);
+            Controls.Add(btnAnalyzeAllField);
             Controls.Add(statusStrip1);
             Controls.Add(lvwHeader);
             Controls.Add(label1);
@@ -335,12 +304,9 @@
             Controls.Add(txtFilePath);
             Name = "frmMain";
             Text = "CSV analyzer";
-            Load += frmMain_Load;
             mnuField.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            grpField.ResumeLayout(false);
-            grpField.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -358,23 +324,26 @@
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel tstStatus;
         private ContextMenuStrip mnuField;
-        private ToolStripMenuItem mnuFindDataType;
+        private ToolStripMenuItem mnuFindDataTypeFast;
         private ColumnHeader colMax;
-        private ToolStripMenuItem mnuFindMax;
         private Button btnExport;
-        private GroupBox grpField;
-        private Label label4;
-        private Label label3;
-        private Label label2;
-        private Label label6;
-        private Label label5;
-        private Label label7;
-        private Label lblDataType;
-        private Label lblNonNullValues;
-        private Label lblNullValues;
-        private Label lblAllValues;
-        private Label lblMax;
-        private Label lblMin;
-        private Button btnAnalyzeField;
+        private Button btnAnalyzeAllField;
+        private ColumnHeader colMin;
+        private ColumnHeader colAllValues;
+        private ColumnHeader colNullValues;
+        private ColumnHeader colUnparsedValues;
+        private ToolStripMenuItem mnuChangeDataType;
+        private ToolStripMenuItem mnuBoolean;
+        private ToolStripMenuItem mnuInteger;
+        private ToolStripMenuItem mnuLong;
+        private ToolStripMenuItem mnuFloat;
+        private ToolStripMenuItem mnuDouble;
+        private ToolStripMenuItem mnuDateTime;
+        private ToolStripMenuItem mnuDateTimeOffset;
+        private ToolStripMenuItem mnuString;
+        private ToolStripMenuItem mnuFindDataType;
+        private Button btnFindDataTypes;
+        private ToolStripSeparator toolStripMenuItem1;
+        private ToolStripMenuItem mnuAnalyze;
     }
 }
