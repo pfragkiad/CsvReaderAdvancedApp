@@ -33,7 +33,6 @@
             btnBrowse = new Button();
             label1 = new Label();
             dlgBrowse = new OpenFileDialog();
-            btnReadHeader = new Button();
             lvwHeader = new ListView();
             colIndex = new ColumnHeader();
             colColumnName = new ColumnHeader();
@@ -44,6 +43,7 @@
             mnuFindMax = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tstStatus = new ToolStripStatusLabel();
+            btnExport = new Button();
             mnuField.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
@@ -53,13 +53,13 @@
             txtFilePath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtFilePath.Location = new Point(88, 35);
             txtFilePath.Name = "txtFilePath";
-            txtFilePath.Size = new Size(668, 23);
+            txtFilePath.Size = new Size(547, 23);
             txtFilePath.TabIndex = 0;
             // 
             // btnBrowse
             // 
             btnBrowse.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowse.Location = new Point(681, 64);
+            btnBrowse.Location = new Point(560, 64);
             btnBrowse.Name = "btnBrowse";
             btnBrowse.Size = new Size(75, 23);
             btnBrowse.TabIndex = 1;
@@ -82,25 +82,15 @@
             dlgBrowse.Filter = "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*";
             dlgBrowse.Title = "Select a CSV or other text file";
             // 
-            // btnReadHeader
-            // 
-            btnReadHeader.Location = new Point(88, 109);
-            btnReadHeader.Name = "btnReadHeader";
-            btnReadHeader.Size = new Size(139, 23);
-            btnReadHeader.TabIndex = 4;
-            btnReadHeader.Text = "Read header";
-            btnReadHeader.UseVisualStyleBackColor = true;
-            btnReadHeader.Click += btnReadHeader_Click;
-            // 
             // lvwHeader
             // 
             lvwHeader.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lvwHeader.Columns.AddRange(new ColumnHeader[] { colIndex, colColumnName, colDataType, colMax });
             lvwHeader.ContextMenuStrip = mnuField;
             lvwHeader.FullRowSelect = true;
-            lvwHeader.Location = new Point(88, 138);
+            lvwHeader.Location = new Point(88, 93);
             lvwHeader.Name = "lvwHeader";
-            lvwHeader.Size = new Size(668, 336);
+            lvwHeader.Size = new Size(547, 342);
             lvwHeader.TabIndex = 5;
             lvwHeader.UseCompatibleStateImageBehavior = false;
             lvwHeader.View = View.Details;
@@ -149,7 +139,7 @@
             statusStrip1.Items.AddRange(new ToolStripItem[] { tstStatus });
             statusStrip1.Location = new Point(0, 491);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(791, 22);
+            statusStrip1.Size = new Size(670, 22);
             statusStrip1.TabIndex = 6;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -159,19 +149,31 @@
             tstStatus.Size = new Size(23, 17);
             tstStatus.Text = "OK";
             // 
+            // btnExport
+            // 
+            btnExport.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnExport.Location = new Point(560, 450);
+            btnExport.Name = "btnExport";
+            btnExport.Size = new Size(75, 23);
+            btnExport.TabIndex = 1;
+            btnExport.Text = "Export...";
+            btnExport.UseVisualStyleBackColor = true;
+            btnExport.Click += btnExport_Click;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(791, 513);
+            ClientSize = new Size(670, 513);
             Controls.Add(statusStrip1);
             Controls.Add(lvwHeader);
-            Controls.Add(btnReadHeader);
             Controls.Add(label1);
+            Controls.Add(btnExport);
             Controls.Add(btnBrowse);
             Controls.Add(txtFilePath);
             Name = "frmMain";
             Text = "CSV analyzer";
+            Load += frmMain_Load;
             mnuField.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
@@ -185,7 +187,6 @@
         private Button btnBrowse;
         private Label label1;
         private OpenFileDialog dlgBrowse;
-        private Button btnReadHeader;
         private ListView lvwHeader;
         private ColumnHeader colIndex;
         private ColumnHeader colColumnName;
@@ -196,5 +197,6 @@
         private ToolStripMenuItem mnuFindDataType;
         private ColumnHeader colMax;
         private ToolStripMenuItem mnuFindMax;
+        private Button btnExport;
     }
 }

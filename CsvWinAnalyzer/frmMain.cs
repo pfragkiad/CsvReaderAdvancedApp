@@ -18,8 +18,7 @@ namespace CsvWinAnalyzer
 
             //initialize base on settings
             txtFilePath.Text = FormSettings.Default.Filepath;
-            ReadHeader();
-
+            if (txtFilePath.Text.Length > 0 && File.Exists(txtFilePath.Text)) ReadHeader();
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -58,6 +57,9 @@ namespace CsvWinAnalyzer
             FormSettings.Default.Save();
             base.OnClosing(e);
         }
+
+
+
 
 
         private void btnReadHeader_Click(object sender, EventArgs e)
@@ -174,41 +176,20 @@ namespace CsvWinAnalyzer
         {
             tstStatus.Text = "Processing..."; statusStrip1.Refresh();
             Cursor.Current = Cursors.WaitCursor;
+            CheckForStringMax();
 
-            foreach (ListViewItem item in lvwHeader.SelectedItems)
-            {
-                int column = int.Parse(item.Text) - 1;
-                string dataType = item.SubItems[2].Text;
+            CheckForIntMax();
 
-                if (dataType != "string") continue;
+            CheckForFloatMax();
 
-                string path = txtFilePath.Text;
-                var encoding = Encoding.UTF8;
+            tstStatus.Text = "OK";
+            Cursor.Current = Cursors.Default;
+        }
 
-                int max = 0;
-
-                var file = _provider.GetCsvFile();
-                foreach (var line in file.Read(path, encoding, true))
-                {
-                    if (line is null) continue;
-                    var tokenizedLine = line.Value;
-
-                    int l = tokenizedLine.Tokens[column].Length;
-                    if (l > max) max = l;
-                }
-
-                if (item.SubItems.Count < 4)
-                    item.SubItems.Add(max.ToString());
-                else
-                    item.SubItems[2].Text = max.ToString();
-                lvwHeader.Refresh();
-            }
-
-
-
-
-
-
+        private void CheckForIntMax()
+        {
+            string path = txtFilePath.Text;
+            var encoding = Encoding.UTF8;
 
             //int
             foreach (ListViewItem item in lvwHeader.SelectedItems)
@@ -217,9 +198,6 @@ namespace CsvWinAnalyzer
                 string dataType = item.SubItems[2].Text;
 
                 if (dataType != "int") continue;
-
-                string path = txtFilePath.Text;
-                var encoding = Encoding.UTF8;
 
                 int max = 0;
                 var file = _provider.GetCsvFile();
@@ -239,8 +217,109 @@ namespace CsvWinAnalyzer
                     item.SubItems[2].Text = max.ToString();
                 lvwHeader.Refresh();
             }
-            tstStatus.Text = "OK";
-            Cursor.Current = Cursors.Default;
+        }
+
+        private void CheckForFloatMax()
+        {
+            string path = txtFilePath.Text;
+            var encoding = Encoding.UTF8;
+
+            //int
+            foreach (ListViewItem item in lvwHeader.SelectedItems)
+            {
+                int column = int.Parse(item.Text) - 1;
+                string dataType = item.SubItems[2].Text;
+
+                if (dataType != "float") continue;
+
+                float max = 0;
+                var file = _provider.GetCsvFile();
+                foreach (var line in file.Read(path, encoding, true))
+                {
+                    if (line is null) continue;
+                    var tokenizedLine = line.Value;
+
+                    var l = tokenizedLine.GetFloat(column);
+                    if (!l.IsParsed) throw new InvalidOperationException("Wrong data type!");
+                    if (l.Value > max) max = l;
+                }
+
+                if (item.SubItems.Count < 4)
+                    item.SubItems.Add(max.ToString());
+                else
+                    item.SubItems[2].Text = max.ToString();
+                lvwHeader.Refresh();
+            }
+        }
+
+        private void CheckForStringMax()
+        {
+            string path = txtFilePath.Text;
+            var encoding = Encoding.UTF8;
+
+            foreach (ListViewItem item in lvwHeader.SelectedItems)
+            {
+                int column = int.Parse(item.Text) - 1;
+                string dataType = item.SubItems[2].Text;
+
+                if (dataType != "string") continue;
+
+                int max = 0;
+
+                var file = _provider.GetCsvFile();
+                foreach (var line in file.Read(path, encoding, true))
+                {
+                    if (line is null) continue;
+                    var tokenizedLine = line.Value;
+
+                    int l = tokenizedLine.Tokens[column].Length;
+                    if (l > max) max = l;
+                }
+
+                if (item.SubItems.Count < 4)
+                    item.SubItems.Add(max.ToString());
+                else
+                    item.SubItems[2].Text = max.ToString();
+                lvwHeader.Refresh();
+            }
+        }
+
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+            string p = SourcePath;
+            if (p.Length > 0 && !File.Exists(p))
+            {
+                MessageBox.Show("The current path does not exist!");
+                return;
+            }
+
+            var headers = SelectedHeaders;
+            if (headers.Count == 0)
+            {
+                MessageBox.Show("Select at least one header first!");
+                return;
+            }
+
+            string pTarget = GetTargetPath()!;
+
+            SaveFileDialog d = new SaveFileDialog()
+            {
+                DefaultExt = "csv",
+                Filter = "CSV files (*.csv)|*.csv|Text files (*.txt|*.txt|All files (*.*)|*.txt",
+                FilterIndex = 1,
+                InitialDirectory = Path.GetDirectoryName(p),
+                FileName = Path.GetFileName(pTarget),
+                Title = "Select the save location"
+            };
+            var reply = d.ShowDialog();
+            if (reply != DialogResult.OK) return;
+
+
         }
 
 
@@ -249,8 +328,15 @@ namespace CsvWinAnalyzer
 
 
 
+        private string? GetTargetPath(string suffix = "_filtered")
+        {
+            string p = SourcePath;
+            if (p.Length > 0 && !File.Exists(p)) return null;
 
+            return Path.Combine(Path.GetDirectoryName(p), Path.GetFileNameWithoutExtension(p) + suffix + Path.GetExtension(p));
+        }
 
-
+        private string SourcePath { get => txtFilePath.Text; }
+        private List<ListViewItem> SelectedHeaders { get => lvwHeader.SelectedItems.Cast<ListViewItem>().ToList(); }
     }
 }

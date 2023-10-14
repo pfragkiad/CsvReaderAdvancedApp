@@ -189,6 +189,40 @@ public class CsvFile : ICsvFile, IDisposable
 
     #endregion
 
+    #region Save to file
 
+    public async Task SavePartialAs(
+        string sourcePath,
+        string targetPath,
+        char targetSeparator,
+        Encoding encoding,
+        params string[] columnNames)
+    {
+        //populate existing columns
+        if (Header is null) ReadHeader(sourcePath, encoding);
+        bool useFields = ExistingFieldColumns.Count>0;
+        
+        //get the source columns
+        int[] columns = useFields ?
+            columnNames.Select(c => ExistingFieldColumns[c]).ToArray() :
+            columnNames.Select(c => ExistingColumns[c]).ToArray();
+
+        await SavePartialAs(sourcePath, targetPath, targetSeparator, encoding, columns);
+    }
+
+    //TODO: Add sample SavePartialAs.
+    //TODO: Add data type in schema.
+    public async Task SavePartialAs(string sourcePath,
+        string targetPath,
+        char targetSeparator,
+        Encoding encoding,
+        params int[] columns)
+    {
+        using StreamWriter writer = new StreamWriter(targetPath, false, encoding);
+        foreach (var line in Read(sourcePath, encoding, skipHeader: false))
+            await writer.WriteLineAsync(string.Join(targetSeparator, columns.Select(c => line!.Value.Tokens[c])));
+    }
+
+    #endregion
 
 }
