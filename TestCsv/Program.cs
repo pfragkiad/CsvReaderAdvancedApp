@@ -19,6 +19,8 @@ internal class Program
         var file = app.Services.GetCsvFile();
         file.ReadFromFile(path, Encoding.UTF8, withHeader: true) ;
 
+        //file = app.Services.GetCsvFileFactory().GetFile(path,Encoding.UTF8, withHeader: true) ;
+
         //build a schema (without appsettings.json)
         CsvSchema schema = new()
         {

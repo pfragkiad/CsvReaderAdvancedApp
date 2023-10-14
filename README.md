@@ -128,7 +128,7 @@ file.PopulateColumns();
 ...
 //or we can use the CsvFileFactory
 //implicitly calls ReadHeader(), which also calls PopulateColumns()
-var file = _provider.GetFile(path, Encoding.UTF8, withHeader:true);
+var file = _provider.GetCsvFileFactory().GetFile(path,Encoding.UTF8, withHeader: true) ;
 ```
 
 The `PopulateColumns()` method updates the internal `ExistingColumns` dictionary. The `ExistingColumns` dictionary is case insensitive and stores the index location for each column. The index location is zero-based.
