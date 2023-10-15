@@ -18,7 +18,7 @@ namespace CsvWinAnalyzer
     public partial class frmDatabase : Form
     {
         private readonly SqlServerExplorer _sql;
-        private readonly CsvFileFactory _csvFiles;
+        private readonly CsvFileFactory _fileFactory;
 
         public frmDatabase(
             SqlServerExplorer explorer,
@@ -30,11 +30,11 @@ namespace CsvWinAnalyzer
             txtTargetTable.Text = FormSettings.Default.TargetTable;
 
             _sql = explorer;
-            _csvFiles = csvFiles;
+            _fileFactory = csvFiles;
         }
 
-        List<ListViewItem> _items = new();
-        public List<ListViewItem> SelectedHeaders
+        List<CsvFieldTypeInfo> _items = new();
+        public List<CsvFieldTypeInfo> SelectedHeaders
         {
             get => _items;
             set
@@ -52,51 +52,53 @@ namespace CsvWinAnalyzer
         private void UpdateCreateTableQuery()
         {
             List<string> declarations = new();
-            foreach (ListViewItem item in _items)
+
+            var file = _fileFactory.GetFile(SourcePath!, Encoding!, true);
+
+
+            foreach (var item in _items)
             {
-                if (item.Tag is null) continue;
+                if (item.BaseType== BaseType.Unknown) continue;
 
-                BaseType baseType = (BaseType)item.Tag;
-                if (baseType == BaseType.Unknown) continue;
+                string columnName = file.Header!.Value.Tokens[item.Column]; //item.SubItems[1].Text;
 
-                string columnName = item.SubItems[1].Text;
-
-                if (baseType == BaseType.String)
+                if (item.BaseType == BaseType.String)
                 {
                     //max
-                    int length = int.Parse(item.SubItems[4].Text);
+                    //int length = int.Parse(item.SubItems[4].Text);
+                    int length = (int)item.Maximum!;
                     declarations.Add($"[{columnName}] nvarchar({length}) NULL");
                 }
-                else if (baseType == BaseType.Integer)
+                else if (item.BaseType == BaseType.Integer)
                     declarations.Add($"[{columnName}] int NULL");
-                else if (baseType == BaseType.Long)
+                else if (item.BaseType == BaseType.Long)
                     declarations.Add($"[{columnName}] bigint NULL");
-                else if (baseType == BaseType.Boolean)
+                else if (item.BaseType == BaseType.Boolean)
                     declarations.Add($"[{columnName}] bit NULL");
-                else if (baseType == BaseType.Float)
+                else if (item.BaseType == BaseType.Float)
                     declarations.Add($"[{columnName}] real NULL");
-                else if (baseType == BaseType.Double)
+                else if (item.BaseType == BaseType.Double)
                     declarations.Add($"[{columnName}] float NULL");
-                else if (baseType == BaseType.DateTime)
+                else if (item.BaseType == BaseType.DateTime)
                     declarations.Add($"[{columnName}] datetime NULL");
-                else if (baseType == BaseType.DateTimeOffset)
+                else if (item.BaseType == BaseType.DateTimeOffset)
                     declarations.Add($"[{columnName}] datetimeoffset NULL");
             }
 
             txtCreateTable.Text = $"CREATE TABLE [{txtTargetTable.Text}] (\r\n   " + string.Join(",\r\n   ", declarations) + "\r\n)";
         }
 
-        //TODO: Move BaseType functionality within 
         DataTable GetDataTable()
         {
             DataTable table = new();
 
+            var file = _fileFactory.GetFile(SourcePath!, Encoding!, true);
+
             foreach (var item in _items)
             {
-                if (item.Tag is null) continue;
-                BaseType baseType = (BaseType)item.Tag;
+                BaseType baseType = item.BaseType;
                 if (baseType == BaseType.Unknown) continue;
-                string columnName = item.SubItems[1].Text;
+                string columnName = file.Header!.Value.Tokens[item.Column];
 
                 if (baseType == BaseType.String)
                     table.Columns.Add(columnName, typeof(string));
@@ -116,9 +118,7 @@ namespace CsvWinAnalyzer
                     table.Columns.Add(columnName, typeof(DateTimeOffset));
             }
 
-            //we assume that the number of the values is equal to the number of all the values
-            int count = int.Parse((_items.First(l => l.SubItems.Count >= 6 && int.TryParse(l.SubItems[5].Text, out int _))
-                .SubItems[5].Text));
+            int count = _items.First().ValuesCount;
 
             const int batchSize = 100000;
             int iBatches = count / batchSize;
@@ -127,15 +127,9 @@ namespace CsvWinAnalyzer
             progressBar1.Maximum = iBatches;
             progressBar1.Visible = true;
 
-            //int[] columns = _items.Select(l => int.Parse(l.Text) - 1).ToArray();
-            List<(string ColumnName, BaseType BaseType)> fields = _items
-                .Where(l => l.Tag is not null && (BaseType)l.Tag != BaseType.Unknown)
-                .Select(l => (l.SubItems[1].Text, (BaseType)l.Tag)).ToList();
-
-            var file = _csvFiles.GetFile(SourcePath!, Encoding!, true);
-            var c = file.ExistingColumns;
-
             table.BeginLoadData();
+
+            var fields = _items.Where(f => f.BaseType != BaseType.Unknown).ToList();
 
             int iRow = 0;
             foreach (var l in file.Read(true))
@@ -150,21 +144,21 @@ namespace CsvWinAnalyzer
                 foreach (var f in fields)
                 {
                     if (f.BaseType == BaseType.String)
-                        values[i] = lt.GetString(f.ColumnName, c);
+                        values[i] = lt.GetString(f.Column);
                     else if (f.BaseType == BaseType.Integer)
-                        values[i] = (int?)lt.GetInt(f.ColumnName, c);
+                        values[i] = (int?)lt.GetInt(f.Column);
                     else if (f.BaseType == BaseType.Long)
-                        values[i] = (long?)lt.GetLong(f.ColumnName, c);
+                        values[i] = (long?)lt.GetLong(f.Column);
                     else if (f.BaseType == BaseType.Boolean)
-                        values[i] = (bool?)lt.GetBool(f.ColumnName, c);
+                        values[i] = (bool?)lt.GetBoolean(f.Column);
                     else if (f.BaseType == BaseType.Float)
-                        values[i] = (float?)lt.GetFloat(f.ColumnName, c);
+                        values[i] = (float?)lt.GetFloat(f.Column);
                     else if (f.BaseType == BaseType.Double)
-                        values[i] = (double?)lt.GetDouble(f.ColumnName, c);
+                        values[i] = (double?)lt.GetDouble(f.Column);
                     else if (f.BaseType == BaseType.DateTime)
-                        values[i] = (DateTime?)lt.GetDateTime(f.ColumnName, c);
+                        values[i] = (DateTime?)lt.GetDateTime(f.Column);
                     else if (f.BaseType == BaseType.DateTimeOffset)
-                        values[i] = (DateTimeOffset?)lt.GetDateTimeOffset(f.ColumnName, c);
+                        values[i] = (DateTimeOffset?)lt.GetDateTimeOffset(f.Column);
                     i++;
                 }
 

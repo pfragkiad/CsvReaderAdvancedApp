@@ -22,8 +22,6 @@ public class CsvFileFactory
         _csvReader = csvReader;
     }
 
-    //TODO: Add example with CSV file factory
-
     /// <summary>
     /// Retrieve a CsvFile and read its header.
     /// </summary>

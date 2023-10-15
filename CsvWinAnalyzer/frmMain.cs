@@ -32,6 +32,16 @@ namespace CsvWinAnalyzer
             txtFilePath.Text = FormSettings.Default.Filepath;
             if (txtFilePath.Text.Length > 0 && File.Exists(txtFilePath.Text)) ReadHeader();
         }
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            FormSettings.Default.Filepath = txtFilePath.Text;
+            FormSettings.Default.Save();
+            base.OnClosing(e);
+        }
+
+
+
+        #region File loading
 
         private void btnBrowse_Click(object sender, EventArgs e)
         {
@@ -63,14 +73,6 @@ namespace CsvWinAnalyzer
         //    tstStatus.Text = $"Lines: {count}, Non-empty Lines: {nonEmptyLines}";
         //}
 
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            FormSettings.Default.Filepath = txtFilePath.Text;
-            FormSettings.Default.Save();
-            base.OnClosing(e);
-        }
-
-
         private void ReadHeader()
         {
             var file = _fileFactory.GetFile(txtFilePath.Text, Encoding.UTF8, true);
@@ -86,10 +88,10 @@ namespace CsvWinAnalyzer
             }
             lvwHeader.Columns[1].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
         }
+        #endregion
 
-        enum Types { Unknown, Integer, Float, DateTime, String }
 
-
+        #region ListView functions
 
         private static void SetSubItem(ListViewItem item, int index, string text)
         {
@@ -99,12 +101,41 @@ namespace CsvWinAnalyzer
                 item.SubItems[index].Text = text;
         }
 
-        private static void SetDataType(ListViewItem item, BaseType dataType)
+        private static void SetDataType(ListViewItem item, BaseType baseType)
         {
-            SetSubItem(item, 2, dataType.ToString());
-            item.ForeColor = dataType == BaseType.Unknown ? Color.Red : Color.Blue;
-            item.Tag = dataType;
+            SetSubItem(item, 2, baseType.ToString());
+            item.ForeColor = baseType == BaseType.Unknown ? Color.Red : Color.Blue;
+
+            if (item.Tag is not null)
+            {
+                CsvFieldTypeInfo info = (CsvFieldTypeInfo)item.Tag;
+                info.BaseType = baseType;
+            }
+            else
+                item.Tag = new CsvFieldTypeInfo() { Column = int.Parse(item.Text) - 1, BaseType = baseType };
         }
+
+
+        private static void SetDataType(ListViewItem item, CsvFieldTypeInfo info)
+        {
+            SetSubItem(item, 2, info.BaseType.ToString());
+            item.ForeColor = info.BaseType == BaseType.Unknown ? Color.Red : Color.Blue;
+            item.Tag = info;
+        }
+
+        #endregion
+
+        #region Main properties
+
+        private string SourcePath { get => txtFilePath.Text; }
+        private List<ListViewItem> SelectedHeaders { get => lvwHeader.SelectedItems.Cast<ListViewItem>().ToList(); }
+
+        private List<ListViewItem> AllHeaders { get => lvwHeader.Items.Cast<ListViewItem>().ToList(); }
+
+        #endregion
+
+
+        #region ListView events
 
 
         private void lvwHeader_KeyDown(object sender, KeyEventArgs e)
@@ -114,84 +145,22 @@ namespace CsvWinAnalyzer
                     item.Selected = true;
         }
 
-
-        private void btnExport_Click(object sender, EventArgs e)
+        private void lvwHeader_DoubleClick(object sender, EventArgs e)
         {
-            ExportPartialCsv();
+            AnalyzeHeaders(SelectedHeaders);
         }
 
-        private void ExportPartialCsv()
-        {
-            string p = SourcePath;
-            if (p.Length == 0 || !File.Exists(p))
-            {
-                ShowWarning("The current path is emppty or does not exist!");
-                return;
-            }
-
-            var headers = SelectedHeaders;
-            if (headers.Count == 0)
-            {
-                ShowWarning("Select at least one header first!");
-                return;
-            }
-
-            string pTarget = GetTargetPath()!;
-
-            SaveFileDialog d = new SaveFileDialog()
-            {
-                DefaultExt = "csv",
-                Filter = "CSV files (*.csv)|*.csv|Text files (*.txt|*.txt|All files (*.*)|*.txt",
-                FilterIndex = 1,
-                InitialDirectory = Path.GetDirectoryName(p),
-                FileName = Path.GetFileName(pTarget),
-                Title = "Select the save location"
-            };
-            var reply = d.ShowDialog();
-            if (reply != DialogResult.OK) return;
-
-            Wait();
-
-            try
-            {
-
-                var file = _fileFactory.GetFile(p, Encoding.Default, true);
-                file.SavePartialAs(d.FileName, ';', headers.Select(c => int.Parse(c.Text) - 1).ToArray());
-                StopWaiting();
-                ShowInfo("Successfully exported!");
-            }
-            catch (Exception ex)
-            {
-                StopWaiting();
-                ShowError($"Error: {ex.Message}");
-            }
-        }
-
+        #endregion
 
 
         //TODO: Ensure data type (run all lines)
 
 
 
-        private string? GetTargetPath(string suffix = "_filtered")
-        {
-            string p = SourcePath;
-            if (p.Length > 0 && !File.Exists(p)) return null;
-
-            return Path.Combine(Path.GetDirectoryName(p), Path.GetFileNameWithoutExtension(p) + suffix + Path.GetExtension(p));
-        }
-
-        private string SourcePath { get => txtFilePath.Text; }
-        private List<ListViewItem> SelectedHeaders { get => lvwHeader.SelectedItems.Cast<ListViewItem>().ToList(); }
-
-        private List<ListViewItem> AllHeaders { get => lvwHeader.Items.Cast<ListViewItem>().ToList(); }
 
         #region Analyze fields
 
-        private void lvwHeader_DoubleClick(object sender, EventArgs e)
-        {
-            AnalyzeHeaders(SelectedHeaders);
-        }
+
 
         private void mnuAnalyze_Click(object sender, EventArgs e)
         {
@@ -203,6 +172,8 @@ namespace CsvWinAnalyzer
             AnalyzeHeaders(AllHeaders);
         }
 
+
+        Dictionary<ListViewItem, CsvFieldTypeInfo> fieldStats = new();
         private void AnalyzeHeaders(IEnumerable<ListViewItem> items)
         {
             string p = SourcePath;
@@ -218,14 +189,14 @@ namespace CsvWinAnalyzer
             string path = txtFilePath.Text;
             var encoding = Encoding.UTF8;
 
-            Dictionary<ListViewItem, CsvFieldTypeInfo> fieldStats = items.ToDictionary(
+            fieldStats = items.ToDictionary(
                 l => l,
-                l =>
-                new CsvFieldTypeInfo()
-                {
-                    Column = int.Parse(l.Text) - 1,
-                    BaseType = l.Tag is null ? BaseType.Unknown : (BaseType)l.Tag
-                });
+                l => l.Tag is not null ? (CsvFieldTypeInfo)l.Tag :
+                    new CsvFieldTypeInfo()
+                    {
+                        Column = int.Parse(l.Text) - 1,
+                        BaseType = BaseType.Unknown
+                    });
 
             var file = _fileFactory.GetFile(path, encoding, true);
 
@@ -243,7 +214,7 @@ namespace CsvWinAnalyzer
                 ListViewItem item = entry.Key;
 
                 var stats = entry.Value;
-                SetDataType(item, stats.BaseType);
+                SetDataType(item, stats);
 
                 if (stats.BaseType == BaseType.Unknown)
                 {
@@ -276,6 +247,7 @@ namespace CsvWinAnalyzer
         {
             foreach (var item in SelectedHeaders)
                 SetDataType(item, BaseType.Boolean);
+
         }
 
         private void mnuInteger_Click(object sender, EventArgs e)
@@ -329,23 +301,29 @@ namespace CsvWinAnalyzer
 
         #region Find data types
 
-        private void btnFindDataTypes_Click(object sender, EventArgs e)
+        private void mnuFindDataTypesAndRanges_Click(object sender, EventArgs e)
         {
-            FindDataTypes(AllHeaders);
+            AnalyzeHeaders(AllHeaders);
         }
+
+        private void mnuFindDataTypes_Click(object sender, EventArgs e)
+        {
+            AnalyzeDataTypes(AllHeaders);
+        }
+
 
         private void mnuFindDataTypeFast_Click(object sender, EventArgs e)
         {
-            FindDataTypes(SelectedHeaders, 200);
+            AnalyzeDataTypes(SelectedHeaders, 200);
 
         }
 
         private void mnuFindDataType_Click(object sender, EventArgs e)
         {
-            FindDataTypes(SelectedHeaders);
+            AnalyzeDataTypes(SelectedHeaders);
         }
 
-        private void FindDataTypes(IEnumerable<ListViewItem> items, int maxRows = int.MaxValue)
+        private void AnalyzeDataTypes(IEnumerable<ListViewItem> items, int maxRows = int.MaxValue)
         {
             string p = SourcePath;
             if (p.Length == 0 || !File.Exists(p))
@@ -382,7 +360,7 @@ namespace CsvWinAnalyzer
             {
                 ListViewItem item = entry.Key;
                 var stats = entry.Value;
-                SetDataType(item, stats.BaseType);
+                SetDataType(item, stats);
             }
 
             tstStatus.Text = "Ready";
@@ -393,34 +371,78 @@ namespace CsvWinAnalyzer
 
         #endregion
 
+        #region Export partial to CSV/database
 
-        private void btnExportSelectedToDatabase_Click(object sender, EventArgs e)
+        private string? GetTargetPath(string suffix = "_filtered")
         {
-            ExportToDatabase(SelectedHeaders);
+            string p = SourcePath;
+            if (p.Length > 0 && !File.Exists(p)) return null;
+
+            return Path.Combine(Path.GetDirectoryName(p), Path.GetFileNameWithoutExtension(p) + suffix + Path.GetExtension(p));
+        }
+
+
+        private void ExportPartialCsv()
+        {
+            string p = SourcePath;
+            if (p.Length == 0 || !File.Exists(p))
+            {
+                ShowWarning("The current path is emppty or does not exist!");
+                return;
+            }
+
+            var headers = SelectedHeaders;
+            if (headers.Count == 0)
+            {
+                ShowWarning("Select at least one header first!");
+                return;
+            }
+
+            string pTarget = GetTargetPath()!;
+
+            SaveFileDialog d = new SaveFileDialog()
+            {
+                DefaultExt = "csv",
+                Filter = "CSV files (*.csv)|*.csv|Text files (*.txt|*.txt|All files (*.*)|*.txt",
+                FilterIndex = 1,
+                InitialDirectory = Path.GetDirectoryName(p),
+                FileName = Path.GetFileName(pTarget),
+                Title = "Select the save location"
+            };
+            var reply = d.ShowDialog();
+            if (reply != DialogResult.OK) return;
+
+            Wait();
+
+            try
+            {
+
+                var file = _fileFactory.GetFile(p, Encoding.Default, true);
+                file.SavePartialAs(d.FileName, ';', headers.Select(c => int.Parse(c.Text) - 1).ToArray());
+                StopWaiting();
+                ShowInfo("Successfully exported!");
+            }
+            catch (Exception ex)
+            {
+                StopWaiting();
+                ShowError($"Error: {ex.Message}");
+            }
         }
 
         private void ExportToDatabase(IEnumerable<ListViewItem> items)
         {
             frmDatabase frm = _provider.GetRequiredService<frmDatabase>();
-            frm.SelectedHeaders = items.ToList();
             frm.SourcePath = this.SourcePath;
             frm.Encoding = Encoding.UTF8;
+
+            frm.SelectedHeaders = items.Where(l => l.Tag is not null).Select(l => (CsvFieldTypeInfo)l.Tag).ToList();
             frm.ShowDialog();
         }
 
-        private void mnuFileExit_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
 
-        private void mnuFindDataTypesAndRanges_Click(object sender, EventArgs e)
+        private void btnExportSelectedToDatabase_Click(object sender, EventArgs e)
         {
-            AnalyzeHeaders(AllHeaders);
-        }
-
-        private void mnuFindDataTypes_Click(object sender, EventArgs e)
-        {
-            FindDataTypes(AllHeaders);
+            ExportToDatabase(SelectedHeaders);
         }
 
         private void mnuExportAllToDatabase_Click(object sender, EventArgs e)
@@ -437,5 +459,16 @@ namespace CsvWinAnalyzer
         {
             ExportPartialCsv();
         }
+
+        #endregion
+
+        private void mnuFileExit_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+
+
+
     }
 }
