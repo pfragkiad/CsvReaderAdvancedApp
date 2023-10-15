@@ -190,7 +190,6 @@ namespace CsvWinAnalyzer
 
         #region Analyze fields
 
-
         private void lvwHeader_DoubleClick(object sender, EventArgs e)
         {
             AnalyzeHeaders(SelectedHeaders);
@@ -221,33 +220,34 @@ namespace CsvWinAnalyzer
             string path = txtFilePath.Text;
             var encoding = Encoding.UTF8;
 
-            List<ListViewItem> list = items.ToList();
-            BaseType[] baseTypes = list.Select(l => l.Tag is null ? BaseType.Unknown : (BaseType)l.Tag).ToArray();
-            int[] columns = list.Select(l => int.Parse(l.Text) - 1).ToArray();
-            CsvFieldTypeInfo[] fieldStats = new CsvFieldTypeInfo[list.Count];
+            Dictionary<ListViewItem, CsvFieldTypeInfo> fieldStats = items.ToDictionary(
+                l => l,
+                l =>
+                new CsvFieldTypeInfo()
+                {
+                    Column = int.Parse(l.Text) - 1,
+                    BaseType = l.Tag is null ? BaseType.Unknown : (BaseType)l.Tag
+                });
 
             var file = _fileFactory.GetFile(path, encoding, true);
 
             tstStatus.Text = "Analyzing data types..."; statusStrip1.Refresh(); Application.DoEvents();
-            Func<int[], BaseType[], int, IEnumerable<(int Column, BaseType BaseType)>> GetFields =
-                (int[] column, BaseType[] baseTypes, int count) => Enumerable.Range(0, list.Count).Select(i => (columns[i], baseTypes[i]));
-
-            fieldStats = file.GetFieldBaseTypes(GetFields(columns, baseTypes, list.Count)).ToArray();
-            baseTypes = fieldStats.Select(f => f.BaseType).ToArray();
+            file.UpdateFieldBaseTypes(fieldStats.Values);
 
             tstStatus.Text = "Retrieving field stats..."; statusStrip1.Refresh(); Application.DoEvents();
-            fieldStats = file.GetFieldStats(GetFields(columns, baseTypes, list.Count)).ToArray();
+            file.UpdateFieldStats(fieldStats.Values);
 
             tstStatus.Text = "Updating listview...";
 
             lvwHeader.SuspendLayout();
-            for (int i = 0; i < list.Count; i++)
+            foreach (var entry in fieldStats)
             {
-                ListViewItem item = list[i];
+                ListViewItem item = entry.Key;
 
-                SetDataType(item, baseTypes[i]);
+                var stats = entry.Value;
+                SetDataType(item, stats.BaseType);
 
-                if (baseTypes[i] == BaseType.Unknown)
+                if (stats.BaseType == BaseType.Unknown)
                 {
                     SetSubItem(item, 3, "-");
                     SetSubItem(item, 4, "-");
@@ -257,7 +257,6 @@ namespace CsvWinAnalyzer
                 }
                 else
                 {
-                    var stats = fieldStats[i];
                     SetSubItem(item, 3, stats.Minimum?.ToString() ?? "-");
                     SetSubItem(item, 4, stats.Maximum?.ToString() ?? "-");
                     SetSubItem(item, 5, stats.ValuesCount.ToString());
@@ -371,7 +370,7 @@ namespace CsvWinAnalyzer
                 string columnName = item.SubItems[1].Text;
                 tstStatus.Text = $"Processing [{columnName}] data..."; statusStrip1.Refresh();
 
-                var dataType = file.GetBaseType(column,BaseType.Unknown, maxRows);
+                var dataType = file.GetBaseType(column, BaseType.Unknown, maxRows);
                 SetDataType(item, dataType);
             }
 

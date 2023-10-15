@@ -119,11 +119,12 @@
             // colIndex
             // 
             colIndex.Text = "#";
+            colIndex.Width = 40;
             // 
             // colColumnName
             // 
             colColumnName.Text = "Name";
-            colColumnName.Width = 100;
+            colColumnName.Width = 250;
             // 
             // colDataType
             // 
@@ -132,18 +133,22 @@
             // colMin
             // 
             colMin.Text = "Min";
+            colMin.Width = 80;
             // 
             // colMax
             // 
             colMax.Text = "Max";
+            colMax.Width = 80;
             // 
             // colAllValues
             // 
             colAllValues.Text = "All #";
+            colAllValues.Width = 80;
             // 
             // colNullValues
             // 
             colNullValues.Text = "Null #";
+            colNullValues.Width = 80;
             // 
             // colUnparsedValues
             // 

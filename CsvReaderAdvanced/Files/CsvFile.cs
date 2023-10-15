@@ -203,23 +203,31 @@ public class CsvFile : IDisposable
 
     #region Data types
 
-    public void AnalyzeFieldTypeInfos()
+
+
+    public void UpdateFieldBaseTypes(
+        int maxRows = int.MaxValue,
+        string? dateTimeFormat = null,
+        string? dateTimeOffsetFormat = null)
     {
+        //read header and populate columns
         if (Header is null) ReadHeader();
+
+        if(ExistingFieldTypeInfos.Count==0)
+            ExistingFieldTypeInfos = ExistingColumns.Select(e => new CsvFieldTypeInfo() { Column = e.Value, BaseType = BaseType.Unknown }).ToList();
+
+        UpdateFieldBaseTypes(ExistingFieldTypeInfos, maxRows, dateTimeFormat, dateTimeOffsetFormat);
     }
 
 
-    public List<CsvFieldTypeInfo> GetFieldBaseTypes( //one pass for all fields
-        IEnumerable<(int Column, BaseType BaseType)> fields,
+    public void UpdateFieldBaseTypes( //one pass for all fields
+        IEnumerable<CsvFieldTypeInfo> fields,
         int maxRows = int.MaxValue,
         string? dateTimeFormat = null,
         string? dateTimeOffsetFormat = null)
     {
 
-        List<CsvFieldTypeInfo> fieldStats = fields.Select(f => new CsvFieldTypeInfo() { Column = f.Column, BaseType = f.BaseType }).ToList();
-
         var lines = Read(_hasHeader);
-
         int iRow = 0;
         foreach (var line in lines)
         {
@@ -228,13 +236,12 @@ public class CsvFile : IDisposable
 
             var t = line.Value;
 
-            foreach (var f in fieldStats)
+            foreach (var f in fields)
             {
                 if (f.BaseType == BaseType.String || t.Tokens[f.Column].Length == 0) continue;
                 f.ProcessLineForBaseType(t, dateTimeFormat, dateTimeOffsetFormat);
             }
         }
-        return fieldStats;
     }
 
     private BaseType GetBaseType(int column, BaseType assumedType, int maxRows, string? dateTimeFormat, string? dateTimeOffsetFormat, IEnumerable<TokenizedLine?> lines)
@@ -303,7 +310,13 @@ public class CsvFile : IDisposable
 
     #region Field stats
 
-    private CsvFieldTypeInfo GetFieldStats(int column, //when lines are pre-loaded
+    public void UpdateFieldStats(int maxRows = int.MaxValue)
+    {
+        UpdateFieldStats(this.ExistingFieldTypeInfos, maxRows);
+    }
+
+    private CsvFieldTypeInfo GetFieldStats(
+        int column, //when lines are pre-loaded
         BaseType assumedType,
         int maxRows,
         IEnumerable<TokenizedLine?> lines)
@@ -335,14 +348,13 @@ public class CsvFile : IDisposable
     }
 
     //best of all (single pass for all fields
-    public List<CsvFieldTypeInfo> GetFieldStats(
-    IEnumerable<(int Column, BaseType BaseType)> fields,
+    public void UpdateFieldStats(
+        IEnumerable<CsvFieldTypeInfo> fields,
         int maxRows = int.MaxValue)
     {
         //initialize stats
-        List<CsvFieldTypeInfo> stats = fields
-            .Select(f => new CsvFieldTypeInfo() { Column = f.Column, BaseType = f.BaseType }).ToList();
-        stats.ForEach(f => f.StartStats());
+        foreach(var f in fields) 
+            f.StartStats();
 
         int iRow = 0;
         var lines = Lines is not null ? Lines : Read(_hasHeader);
@@ -352,13 +364,12 @@ public class CsvFile : IDisposable
             iRow++; if (iRow > maxRows) break;
 
             var t = line.Value;
-            foreach (var f in stats)
+            foreach (var f in fields)
                 f.ProcessLineForStats(t);
         }
 
-        stats.ForEach(f => f.FinishStats());
-
-        return stats;
+        foreach (var f in fields)
+            f.FinishStats();
     }
     #endregion
 
