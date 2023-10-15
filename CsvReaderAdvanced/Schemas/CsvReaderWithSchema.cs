@@ -1,4 +1,5 @@
-﻿using CsvReaderAdvanced.Interfaces;
+﻿using CsvReaderAdvanced.Files;
+
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
@@ -10,18 +11,18 @@ using System.Text;
 
 namespace CsvReaderAdvanced.Schemas;
 
-public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
+public abstract class CsvReaderWithSchema 
 {
-    protected readonly CsvFile _file;
+    private readonly CsvFileFactory _fileFactory;
     protected readonly ILogger _logger;
     protected readonly CsvSchemaOptions _options;
 
     public CsvReaderWithSchema(
-        CsvFile file,
+        CsvFileFactory fileFactory,
         ILogger logger,
         IOptions<CsvSchemaOptions> options)
     {
-        _file = file;
+        _fileFactory = fileFactory;
         _logger = logger;
         _options = options.Value;
 
@@ -95,7 +96,7 @@ public abstract class CsvReaderWithSchema : ICsvReaderWithSchema
                 };
         }
 
-        _file.ReadFromFile(filePath, Encoding.UTF8, withHeader: true);
+        var _file = _fileFactory.ReadWholeFile(filePath, Encoding.UTF8, true);
 
         //schema is needed for reporting missing columns
         _file.CheckAgainstSchema(CsvSchema!);

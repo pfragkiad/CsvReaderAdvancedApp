@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
-namespace CsvReaderAdvanced;
+namespace CsvReaderAdvanced.Schemas;
 
 //public struct Unparsable { public static Unparsable Default = new Unparsable(); }
 
@@ -14,7 +14,7 @@ public readonly struct ParsedValue<T> where T : struct
 
     public bool IsParsed { get; init; }
 
-    public bool IsNull => Value is null && !IsParsed; 
+    public bool IsNull => Value is null && !IsParsed;
 
     public static implicit operator T?(ParsedValue<T> v)
     {

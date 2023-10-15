@@ -1,4 +1,4 @@
-﻿using CsvReaderAdvanced.Interfaces;
+﻿
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -6,16 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CsvReaderAdvanced;
+namespace CsvReaderAdvanced.Files;
 
 public class CsvFileFactory
 {
     private readonly ILoggerFactory _loggerFactory;
-    private readonly ICsvReader _csvReader;
+    private readonly CsvReader _csvReader;
 
     public CsvFileFactory(
         ILoggerFactory loggerFactory,
-        ICsvReader csvReader
+        CsvReader csvReader
         )
     {
         _loggerFactory = loggerFactory;
@@ -31,11 +31,10 @@ public class CsvFileFactory
     /// <param name="encoding"></param>
     /// <param name="withHeader"></param>
     /// <returns></returns>
-    public ICsvFile GetFile(string path, Encoding encoding, bool withHeader)
+    public CsvFile GetFile(string path, Encoding encoding, bool withHeader)
     {
-        var file = new CsvFile(_loggerFactory.CreateLogger<CsvFile>(),_csvReader);
-        if (withHeader) file.ReadHeader(path, encoding);
-
+        var file = new CsvFile(_loggerFactory.CreateLogger<CsvFile>(), _csvReader, path,encoding,withHeader);
+        if (withHeader) file.ReadHeader();
         return file;
     }
 
@@ -46,10 +45,10 @@ public class CsvFileFactory
     /// <param name="encoding"></param>
     /// <param name="withHeader"></param>
     /// <returns></returns>
-    public ICsvFile ReadWholeFile(string path, Encoding encoding, bool withHeader)
+    public CsvFile ReadWholeFile(string path, Encoding encoding, bool withHeader)
     {
-        var file = new CsvFile(_loggerFactory.CreateLogger<CsvFile>(),_csvReader);
-        file.ReadFromFile(path, encoding, withHeader);
+        var file = new CsvFile(_loggerFactory.CreateLogger<CsvFile>(), _csvReader, path,encoding, withHeader);
+        file.ReadWholeFile();
 
         return file;
     }
@@ -57,9 +56,8 @@ public class CsvFileFactory
 
     public IEnumerable<TokenizedLine?> ReadFile(string path, Encoding encoding, bool skipHeader)
     {
-        var file = new CsvFile(_loggerFactory.CreateLogger<CsvFile>(), _csvReader);
-
-        foreach (var line in file.Read(path, encoding, skipHeader))
+        var file = new CsvFile(_loggerFactory.CreateLogger<CsvFile>(), _csvReader, path,encoding,skipHeader);
+        foreach (var line in file.Read(skipHeader))
             yield return line;
     }
 

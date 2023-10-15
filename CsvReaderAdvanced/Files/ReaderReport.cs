@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace CsvReaderAdvanced;
+namespace CsvReaderAdvanced.Files;
 
 public readonly struct ReaderReport
 {
@@ -15,7 +15,7 @@ public readonly struct ReaderReport
     public int? Valid
     {
         get =>
-            (Added is null) && (Updated is null) ? null : (Added ?? 0) + (Updated ?? 0);
+            Added is null && Updated is null ? null : (Added ?? 0) + (Updated ?? 0);
     }
 
     public int? Invalid { get; init; }

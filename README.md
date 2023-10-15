@@ -26,7 +26,6 @@ First add the service to the ServiceCollection.
         ...
 ```
 
-
 ## Csv schemas via appsettings.json
 
 To understand exactly what the method does, it assumes that the current configuration file contains a `csvSchemas` section, typically in the `appsettings.json` file:
@@ -34,8 +33,7 @@ To understand exactly what the method does, it assumes that the current configur
 ```cs
 public static IServiceCollection AddCsvReader(this IServiceCollection services, IConfiguration configuration)
 {
-    services.AddScoped<ICsvReader,CsvReader>();
-    services.AddTransient<ICsvFile,CsvFile>();
+    services.AddScoped<CsvReader>();
     services.AddScoped<CsvFileFactory>();
 
     //Microsoft.Extensions.Hosting must be referenced
@@ -44,7 +42,7 @@ public static IServiceCollection AddCsvReader(this IServiceCollection services, 
 }
 ```
 
-The schema in the appsettings.json file typically contains a property named `csvSchemas`:
+The schema in the `appsettings.json` file typically contains a property named `csvSchemas`:
 
 ```json
 "csvSchemas": {
@@ -113,25 +111,19 @@ public ValidationResult CheckForSchema(string name)
 
 ## Read the file
 
-We instantiate a `CsvFile` in order to read the file. Note that the aforementioned `CsvSchema` is not needed if we do not have a header and/or do not want to validate the existence of fields.
+We instantiate a `CsvFile` via the `CsvFileFactory` (NOTE: this has changed in version 2.0). Note that the aforementioned `CsvSchema` is not needed if we do not have a header and/or do not want to validate the existence of fields.
 For the example below, we assume that a `CsvSchema` is checked.
 
 ```cs
 //We assume that _provider is an IServiceProvider which is injected via DI
-var file = _provider.GetCsvFile();
-file.ReadFromFile(path, Encoding.UTF8, withHeader:true);
+var fileFactory = _provider.GetCsvFileFactory();
+var file = fileFactory.ReadWholeFile(path, Encoding.UTF8, withHeader:true);
 
-//the line above is equivalent to the 2 commands:
-file.ReadFromFile(path, Encoding.UTF8);
-file.PopulateColumns();
-
-...
-//or we can use the CsvFileFactory
-//implicitly calls ReadHeader(), which also calls PopulateColumns()
-var file = _provider.GetCsvFileFactory().GetFile(path,Encoding.UTF8, withHeader: true) ;
+//To minimally instantiate the file we should call the GetFile, which reads the header
+var file = fileFactory.GetFile(path, Encoding.UTF8, withHeader:true);
 ```
 
-The `PopulateColumns()` method updates the internal `ExistingColumns` dictionary. The `ExistingColumns` dictionary is case insensitive and stores the index location for each column. The index location is zero-based.
+If the `withHeader` argument is `true`, then the `ReadHeader()` method is called which populates the `Header` property. The `PopulateColumns()` method updates the internal `ExistingColumns` dictionary. The `ExistingColumns` dictionary is case insensitive and stores the index location for each column. The index location is zero-based.
 To check the existence of fields against a schema we should call the `CheckAgainstSchema()` method as shown below:
 
 ```cs
@@ -178,6 +170,7 @@ foreach (var line in file.Lines)
 ```
 
 ## Example 1 - Simple case without schema
+
 Let's assume that we have a simple csv file with known headers. The simplest case is to use the `ExistingColumns` property.
 This is populated after the call to `ReadFromFile` when the `withHeader` argument is set to `true`.
 
@@ -196,17 +189,19 @@ The full code to read them is then:
 var host = Host.CreateDefaultBuilder(args).ConfigureServices((c, s) => s.AddCsvReader(c.Configuration));
 var app = host.Build();
 
-//read the file
+
 string path = @".\samples\hard.csv";
-var file = app.Services.GetCsvFile();
-file.ReadFromFile(path, Encoding.UTF8, withHeader: true) ;
+
+//read the whole file
+var file = app.Services.GetCsvFileFactory()
+    .ReadWholeFile(path, Encoding.UTF8, withHeader: true);
 
 //get the values
-var c = file.ExistingColumns;
+var c = file.ExistingColumns; //Dictionary<string, int>
 foreach (var l in file.Lines!)
 {
     if (!l.HasValue) return;
-    var t = l.Value.Tokens;
+    var t = l.Value.Tokens; //List<string>
     string? v1 = l.Value.GetString("FullName", c);
     double? v2 = l.Value.GetDouble("DoubleValue", c);
     int? v3 = l.Value.GetInt("IntValue", c);
@@ -215,4 +210,24 @@ foreach (var l in file.Lines!)
 
 ```
 
-> IS THAT ALL? Of course not. More examples are pending. The library is more powerful than it seems!
+## Example 2 - Avoid preloading the whole data from the file
+
+We can use the `Read` method in order to load the file in a lazy-read manner (i.e. the lines are not pre-loaded). In this case we should instantiate the `CsvFile` instance using the `GetFile` method instead. See the modified example below, which in practice saves memory in many cases:
+
+```cs
+//read the header only from the file
+CsvFile file = app.Services.GetCsvFileFactory()
+    .GetFile(path, Encoding.UTF8, withHeader: true);
+
+//get the values
+var c = file.ExistingColumns; //Dictionary<string, int>
+
+//lazy enumerate using the Read function
+foreach (TokenizedLine? l in file.Read(skipHeader: true))
+{
+    if (!l.HasValue) return;
+    var t = l.Value.Tokens; //List<string>
+
+```
+
+## STAY TUNED

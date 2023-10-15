@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CsvReaderAdvanced;
+namespace CsvReaderAdvanced.Schemas;
 
 public class Limit
 {

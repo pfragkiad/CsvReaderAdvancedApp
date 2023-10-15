@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FilterGlecBuild\SqlServerExplorerLib\SqlServerExplorerLib.csproj" />
+    <ProjectReference Include="..\..\SqlServerExplorerApp\SqlServerExplorerLib\SqlServerExplorerLib.csproj" />
     <ProjectReference Include="..\CsvReaderAdvanced\CsvReaderAdvanced.csproj" />
   </ItemGroup>
 

@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CsvWinAnalyzer", "CsvWinAna
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Co2Monitoring", "Co2Monitoring\Co2Monitoring.csproj", "{80587EA2-49B8-49F2-8286-2CC0FC5A6C90}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlServerExplorerLib", "..\FilterGlecBuild\SqlServerExplorerLib\SqlServerExplorerLib.csproj", "{6E552FDD-023B-45DA-B927-CBDE3441FC23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlServerExplorerLib", "..\SqlServerExplorerApp\SqlServerExplorerLib\SqlServerExplorerLib.csproj", "{80E1DB06-53F0-4C8F-866E-7AE113A5FD70}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{80587EA2-49B8-49F2-8286-2CC0FC5A6C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80587EA2-49B8-49F2-8286-2CC0FC5A6C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80587EA2-49B8-49F2-8286-2CC0FC5A6C90}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6E552FDD-023B-45DA-B927-CBDE3441FC23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6E552FDD-023B-45DA-B927-CBDE3441FC23}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6E552FDD-023B-45DA-B927-CBDE3441FC23}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6E552FDD-023B-45DA-B927-CBDE3441FC23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80E1DB06-53F0-4C8F-866E-7AE113A5FD70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80E1DB06-53F0-4C8F-866E-7AE113A5FD70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80E1DB06-53F0-4C8F-866E-7AE113A5FD70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80E1DB06-53F0-4C8F-866E-7AE113A5FD70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

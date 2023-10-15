@@ -1,4 +1,4 @@
-﻿using CsvReaderAdvanced;
+﻿using CsvReaderAdvanced.Files;
 using CsvReaderAdvanced.Schemas;
 using Microsoft.Data.SqlClient;
 using SqlServerExplorerLib;
@@ -138,7 +138,7 @@ namespace CsvWinAnalyzer
             table.BeginLoadData();
 
             int iRow = 0;
-            foreach (var l in file.Read(this.SourcePath!, this.Encoding!, true))
+            foreach (var l in file.Read(true))
             {
                 if (!l.HasValue) continue;
                 var lt = l.Value;

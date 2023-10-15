@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
+using CsvReaderAdvanced.Schemas;
 
-namespace CsvReaderAdvanced;
+namespace CsvReaderAdvanced.Files;
 
 public struct TokenizedLine
 {

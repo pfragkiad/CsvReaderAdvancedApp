@@ -1,4 +1,5 @@
 ﻿using CsvReaderAdvanced;
+using CsvReaderAdvanced.Files;
 using CsvReaderAdvanced.Schemas;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
@@ -16,8 +17,8 @@ internal class Program
 
         //read the file
         string path = @"D:\repos\pfragkiad\CsvReaderAdvancedApp\CsvReaderAdvanced\samples\hard.csv";
-        var file = app.Services.GetCsvFile();
-        file.ReadFromFile(path, Encoding.UTF8, withHeader: true) ;
+        var factory = app.Services.GetCsvFileFactory();
+        var file = factory.ReadWholeFile(path, Encoding.UTF8, withHeader: true) ;
 
         //file = app.Services.GetCsvFileFactory().GetFile(path,Encoding.UTF8, withHeader: true) ;
 
@@ -34,14 +35,15 @@ internal class Program
         };
 
         file.CheckAgainstSchema(schema);
-        var c = file.ExistingFieldColumns;
+        Dictionary<string, int> c = file.ExistingFieldColumns;
 
         //var c = file.ExistingColumns;
 
-        foreach (var l in file.Lines!)
+        foreach (TokenizedLine? l in file.Lines!)
         {
             if (!l.HasValue) return;
-            var t = l.Value.Tokens;
+            List<string> t = l.Value.Tokens;
+
             string? v1 = l.Value.GetString("FullName", c);
             double? v2 = l.Value.GetDouble("DoubleValue", c);
             int? v3 = l.Value.GetInt("IntValue", c);

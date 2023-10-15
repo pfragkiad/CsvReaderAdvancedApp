@@ -1,6 +1,4 @@
-﻿using CsvReaderAdvanced.Schemas;
-
-namespace CsvReaderAdvanced;
+﻿namespace CsvReaderAdvanced.Schemas;
 
 public class CsvSchemaOptions
 {

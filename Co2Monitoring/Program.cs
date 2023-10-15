@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Hosting;
 
 using CsvReaderAdvanced;
-using CsvReaderAdvanced.Interfaces;
+
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Text;
+using CsvReaderAdvanced.Files;
 
 namespace Co2Monitoring;
 
@@ -17,6 +18,8 @@ internal class Program
             .CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             services.AddCsvReader(context.Configuration)).Build();
+
+        var fileFactory = host.Services.GetCsvFileFactory();
 
         //string path = @"D:\OneDrive - EMISIA SA\EEA\EEA DB CSV FILES\cars\2021 final cars\data.csv";
         //string targetTable = "cars_2021";
@@ -32,7 +35,6 @@ internal class Program
 
 
 
-        ICsvFile file = host.Services.GetCsvFile();
         //string[] fields = new string[] { "ID", "Country", "Ft", "Fm", "Mk", "Cn", "ec (cm3)","r" };
         string[] fields = new string[] { "ID", "Country", "Ft", "Fm", "Mk", "Cn", "ec (cm3)","m (kg)", "Mf (kg)", "r" };
 
@@ -48,10 +50,11 @@ internal class Program
         table.Columns.Add("Mf (kg)", typeof(int));//vans
         table.Columns.Add("r", typeof(int));
 
-        file.ReadHeader(path, Encoding.UTF8);
+
+        var file = fileFactory.GetFile(path, Encoding.UTF8,true);
         var c = file.ExistingColumns;
 
-        foreach(var l in file.Read(path,Encoding.UTF8,true))
+        foreach(var l in file.Read(skipHeader:true))
         {
             if(!l.HasValue) continue;
             var lt = l.Value;

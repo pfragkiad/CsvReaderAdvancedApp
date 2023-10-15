@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using CsvReaderAdvanced.Interfaces;
 
-namespace CsvReaderAdvanced;
 
-public class CsvReader : ICsvReader
+namespace CsvReaderAdvanced.Files;
+
+public class CsvReader 
 {
     //internal static void TestsFirst()
     //{

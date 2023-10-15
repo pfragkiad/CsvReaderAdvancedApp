@@ -1,11 +1,13 @@
 ﻿
 
-using CsvReaderAdvanced.Interfaces;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using CsvReaderAdvanced.Schemas;
+using CsvReaderAdvanced.Files;
 
 namespace CsvReaderAdvanced;
 
@@ -14,8 +16,7 @@ public static class DependencyInjection
     public static IServiceCollection AddCsvReader(this IServiceCollection services, IConfiguration configuration)
     {
         services
-        .AddScoped<ICsvReader,CsvReader>()
-        .AddTransient<ICsvFile,CsvFile>()
+        .AddScoped<CsvReader>()
         .AddScoped<CsvFileFactory>()
         ;
 
@@ -25,11 +26,8 @@ public static class DependencyInjection
 
     }
 
-    public static ICsvReader GetCsvReader(this IServiceProvider provider) =>
-        provider.GetRequiredService<ICsvReader>();
-
-    public static ICsvFile GetCsvFile(this IServiceProvider provider) =>
-        provider.GetRequiredService<ICsvFile>();
+    public static CsvReader GetCsvReader(this IServiceProvider provider) =>
+        provider.GetRequiredService<CsvReader>();
 
     public static CsvFileFactory GetCsvFileFactory(this IServiceProvider provider) =>
         provider.GetRequiredService<CsvFileFactory>();
