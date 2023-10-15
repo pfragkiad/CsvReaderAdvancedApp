@@ -56,15 +56,22 @@
             mnuString = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
             mnuAnalyze = new ToolStripMenuItem();
+            toolStripMenuItem3 = new ToolStripSeparator();
+            mnuExportSelectedToDatabase = new ToolStripMenuItem();
+            mnuExportSelectedToCsvFile = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             tstStatus = new ToolStripStatusLabel();
-            btnExport = new Button();
-            btnAnalyzeAllField = new Button();
-            btnFindDataTypes = new Button();
-            btnExportSelectedToDatabase = new Button();
-            btnExportAllToDatabase = new Button();
+            menuStrip1 = new MenuStrip();
+            mnuFile = new ToolStripMenuItem();
+            mnuFileExit = new ToolStripMenuItem();
+            mnuTools = new ToolStripMenuItem();
+            mnuFindDataTypes = new ToolStripMenuItem();
+            mnuFindDataTypesAndRanges = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripSeparator();
+            mnuExportAllToDatabase = new ToolStripMenuItem();
             mnuField.SuspendLayout();
             statusStrip1.SuspendLayout();
+            menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // txtFilePath
@@ -109,7 +116,7 @@
             lvwHeader.FullRowSelect = true;
             lvwHeader.Location = new Point(88, 93);
             lvwHeader.Name = "lvwHeader";
-            lvwHeader.Size = new Size(982, 350);
+            lvwHeader.Size = new Size(982, 411);
             lvwHeader.TabIndex = 5;
             lvwHeader.UseCompatibleStateImageBehavior = false;
             lvwHeader.View = View.Details;
@@ -157,21 +164,21 @@
             // 
             // mnuField
             // 
-            mnuField.Items.AddRange(new ToolStripItem[] { mnuFindDataTypeFast, mnuFindDataType, mnuChangeDataType, toolStripMenuItem1, mnuAnalyze });
+            mnuField.Items.AddRange(new ToolStripItem[] { mnuFindDataTypeFast, mnuFindDataType, mnuChangeDataType, toolStripMenuItem1, mnuAnalyze, toolStripMenuItem3, mnuExportSelectedToDatabase, mnuExportSelectedToCsvFile });
             mnuField.Name = "mnuField";
-            mnuField.Size = new Size(189, 98);
+            mnuField.Size = new Size(228, 148);
             // 
             // mnuFindDataTypeFast
             // 
             mnuFindDataTypeFast.Name = "mnuFindDataTypeFast";
-            mnuFindDataTypeFast.Size = new Size(188, 22);
+            mnuFindDataTypeFast.Size = new Size(227, 22);
             mnuFindDataTypeFast.Text = "Find data type (fast)...";
             mnuFindDataTypeFast.Click += mnuFindDataTypeFast_Click;
             // 
             // mnuFindDataType
             // 
             mnuFindDataType.Name = "mnuFindDataType";
-            mnuFindDataType.Size = new Size(188, 22);
+            mnuFindDataType.Size = new Size(227, 22);
             mnuFindDataType.Text = "Find data type...";
             mnuFindDataType.Click += mnuFindDataType_Click;
             // 
@@ -179,7 +186,7 @@
             // 
             mnuChangeDataType.DropDownItems.AddRange(new ToolStripItem[] { mnuBoolean, mnuInteger, mnuLong, mnuFloat, mnuDouble, mnuDateTime, mnuDateTimeOffset, mnuString });
             mnuChangeDataType.Name = "mnuChangeDataType";
-            mnuChangeDataType.Size = new Size(188, 22);
+            mnuChangeDataType.Size = new Size(227, 22);
             mnuChangeDataType.Text = "Change data type to";
             // 
             // mnuBoolean
@@ -241,15 +248,34 @@
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(185, 6);
+            toolStripMenuItem1.Size = new Size(224, 6);
             // 
             // mnuAnalyze
             // 
             mnuAnalyze.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             mnuAnalyze.Name = "mnuAnalyze";
-            mnuAnalyze.Size = new Size(188, 22);
+            mnuAnalyze.Size = new Size(227, 22);
             mnuAnalyze.Text = "Analyze...";
             mnuAnalyze.Click += mnuAnalyze_Click;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(224, 6);
+            // 
+            // mnuExportSelectedToDatabase
+            // 
+            mnuExportSelectedToDatabase.Name = "mnuExportSelectedToDatabase";
+            mnuExportSelectedToDatabase.Size = new Size(227, 22);
+            mnuExportSelectedToDatabase.Text = "Export selected to database...";
+            mnuExportSelectedToDatabase.Click += mnuExportSelectedToDatabase_Click;
+            // 
+            // mnuExportSelectedToCsvFile
+            // 
+            mnuExportSelectedToCsvFile.Name = "mnuExportSelectedToCsvFile";
+            mnuExportSelectedToCsvFile.Size = new Size(227, 22);
+            mnuExportSelectedToCsvFile.Text = "Export selected to CSV file...";
+            mnuExportSelectedToCsvFile.Click += mnuExportSelectedToCsvFile_Click;
             // 
             // statusStrip1
             // 
@@ -263,84 +289,85 @@
             // tstStatus
             // 
             tstStatus.Name = "tstStatus";
-            tstStatus.Size = new Size(23, 17);
-            tstStatus.Text = "OK";
+            tstStatus.Size = new Size(39, 17);
+            tstStatus.Text = "Ready";
             // 
-            // btnExport
+            // menuStrip1
             // 
-            btnExport.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnExport.Location = new Point(88, 463);
-            btnExport.Name = "btnExport";
-            btnExport.Size = new Size(100, 41);
-            btnExport.TabIndex = 1;
-            btnExport.Text = "Export partial CSV file...";
-            btnExport.UseVisualStyleBackColor = true;
-            btnExport.Click += btnExport_Click;
+            menuStrip1.Items.AddRange(new ToolStripItem[] { mnuFile, mnuTools });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(1105, 24);
+            menuStrip1.TabIndex = 9;
+            menuStrip1.Text = "menuStrip1";
             // 
-            // btnAnalyzeAllField
+            // mnuFile
             // 
-            btnAnalyzeAllField.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnAnalyzeAllField.Location = new Point(300, 463);
-            btnAnalyzeAllField.Name = "btnAnalyzeAllField";
-            btnAnalyzeAllField.Size = new Size(100, 41);
-            btnAnalyzeAllField.TabIndex = 2;
-            btnAnalyzeAllField.Text = "Analyze all fields...";
-            btnAnalyzeAllField.UseVisualStyleBackColor = true;
-            btnAnalyzeAllField.Click += btnAnalyzeAllField_Click;
+            mnuFile.DropDownItems.AddRange(new ToolStripItem[] { mnuFileExit });
+            mnuFile.Name = "mnuFile";
+            mnuFile.Size = new Size(37, 20);
+            mnuFile.Text = "File";
             // 
-            // btnFindDataTypes
+            // mnuFileExit
             // 
-            btnFindDataTypes.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnFindDataTypes.Location = new Point(194, 463);
-            btnFindDataTypes.Name = "btnFindDataTypes";
-            btnFindDataTypes.Size = new Size(100, 41);
-            btnFindDataTypes.TabIndex = 7;
-            btnFindDataTypes.Text = "Find all data types...";
-            btnFindDataTypes.UseVisualStyleBackColor = true;
-            btnFindDataTypes.Click += btnFindDataTypes_Click;
+            mnuFileExit.Name = "mnuFileExit";
+            mnuFileExit.ShortcutKeys = Keys.Alt | Keys.F4;
+            mnuFileExit.Size = new Size(135, 22);
+            mnuFileExit.Text = "Exit";
+            mnuFileExit.Click += mnuFileExit_Click;
             // 
-            // btnExportSelectedToDatabase
+            // mnuTools
             // 
-            btnExportSelectedToDatabase.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnExportSelectedToDatabase.Location = new Point(970, 463);
-            btnExportSelectedToDatabase.Name = "btnExportSelectedToDatabase";
-            btnExportSelectedToDatabase.Size = new Size(100, 41);
-            btnExportSelectedToDatabase.TabIndex = 8;
-            btnExportSelectedToDatabase.Text = "Export selected to database...";
-            btnExportSelectedToDatabase.UseVisualStyleBackColor = true;
-            btnExportSelectedToDatabase.Click += btnExportSelectedToDatabase_Click;
+            mnuTools.DropDownItems.AddRange(new ToolStripItem[] { mnuFindDataTypes, mnuFindDataTypesAndRanges, toolStripMenuItem2, mnuExportAllToDatabase });
+            mnuTools.Name = "mnuTools";
+            mnuTools.Size = new Size(46, 20);
+            mnuTools.Text = "Tools";
             // 
-            // btnExportAllToDatabase
+            // mnuFindDataTypes
             // 
-            btnExportAllToDatabase.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnExportAllToDatabase.Location = new Point(864, 463);
-            btnExportAllToDatabase.Name = "btnExportAllToDatabase";
-            btnExportAllToDatabase.Size = new Size(100, 41);
-            btnExportAllToDatabase.TabIndex = 8;
-            btnExportAllToDatabase.Text = "Export all to database...";
-            btnExportAllToDatabase.UseVisualStyleBackColor = true;
-            btnExportAllToDatabase.Click += btnExportAllToDatabase_Click;
+            mnuFindDataTypes.Name = "mnuFindDataTypes";
+            mnuFindDataTypes.Size = new Size(224, 22);
+            mnuFindDataTypes.Text = "Find data types...";
+            mnuFindDataTypes.Click += mnuFindDataTypes_Click;
+            // 
+            // mnuFindDataTypesAndRanges
+            // 
+            mnuFindDataTypesAndRanges.Name = "mnuFindDataTypesAndRanges";
+            mnuFindDataTypesAndRanges.Size = new Size(224, 22);
+            mnuFindDataTypesAndRanges.Text = "Find data types and ranges...";
+            mnuFindDataTypesAndRanges.Click += mnuFindDataTypesAndRanges_Click;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(221, 6);
+            // 
+            // mnuExportAllToDatabase
+            // 
+            mnuExportAllToDatabase.Name = "mnuExportAllToDatabase";
+            mnuExportAllToDatabase.Size = new Size(224, 22);
+            mnuExportAllToDatabase.Text = "Export all to database...";
+            mnuExportAllToDatabase.Click += mnuExportAllToDatabase_Click;
             // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1105, 544);
-            Controls.Add(btnExportAllToDatabase);
-            Controls.Add(btnExportSelectedToDatabase);
-            Controls.Add(btnFindDataTypes);
-            Controls.Add(btnAnalyzeAllField);
             Controls.Add(statusStrip1);
+            Controls.Add(menuStrip1);
             Controls.Add(lvwHeader);
             Controls.Add(label1);
-            Controls.Add(btnExport);
             Controls.Add(btnBrowse);
             Controls.Add(txtFilePath);
+            MainMenuStrip = menuStrip1;
             Name = "frmMain";
             Text = "CSV analyzer";
             mnuField.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -360,8 +387,6 @@
         private ContextMenuStrip mnuField;
         private ToolStripMenuItem mnuFindDataTypeFast;
         private ColumnHeader colMax;
-        private Button btnExport;
-        private Button btnAnalyzeAllField;
         private ColumnHeader colMin;
         private ColumnHeader colAllValues;
         private ColumnHeader colNullValues;
@@ -376,10 +401,18 @@
         private ToolStripMenuItem mnuDateTimeOffset;
         private ToolStripMenuItem mnuString;
         private ToolStripMenuItem mnuFindDataType;
-        private Button btnFindDataTypes;
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripMenuItem mnuAnalyze;
-        private Button btnExportSelectedToDatabase;
-        private Button btnExportAllToDatabase;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem mnuFile;
+        private ToolStripMenuItem mnuFileExit;
+        private ToolStripMenuItem mnuTools;
+        private ToolStripMenuItem mnuFindDataTypes;
+        private ToolStripMenuItem mnuFindDataTypesAndRanges;
+        private ToolStripSeparator toolStripMenuItem2;
+        private ToolStripMenuItem mnuExportAllToDatabase;
+        private ToolStripSeparator toolStripMenuItem3;
+        private ToolStripMenuItem mnuExportSelectedToDatabase;
+        private ToolStripMenuItem mnuExportSelectedToCsvFile;
     }
 }

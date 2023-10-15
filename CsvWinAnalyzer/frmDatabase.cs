@@ -83,7 +83,7 @@ namespace CsvWinAnalyzer
                     declarations.Add($"[{columnName}] datetimeoffset NULL");
             }
 
-            txtCreateTable.Text = $"CREATE TABLE [{txtTargetTable.Text}](\r\n" + string.Join(",\r\n", declarations) + ")";
+            txtCreateTable.Text = $"CREATE TABLE [{txtTargetTable.Text}] (\r\n   " + string.Join(",\r\n   ", declarations) + "\r\n)";
         }
 
         //TODO: Move BaseType functionality within 
@@ -208,6 +208,10 @@ namespace CsvWinAnalyzer
         {
             if (e.KeyCode == Keys.Enter) UpdateCreateTableQuery();
         }
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            UpdateCreateTableQuery();
+        }
 
         private async void btnCreateTable_Click(object sender, EventArgs e)
         {
@@ -293,7 +297,7 @@ namespace CsvWinAnalyzer
                 connection.Close();
 
                 progressBar1.Visible = false;
-                tstStatus.Text = "OK"; statusStrip1.Refresh();
+                tstStatus.Text = "Ready"; statusStrip1.Refresh();
 
 
                 StopWaiting();
@@ -303,7 +307,7 @@ namespace CsvWinAnalyzer
             catch (Exception ex)
             {
                 StopWaiting();
-                tstStatus.Text = "OK";
+                tstStatus.Text = "Ready";
                 ShowError(ex.Message);
             }
         }
@@ -325,5 +329,7 @@ namespace CsvWinAnalyzer
                 ShowError(ex.Message);
             }
         }
+
+
     }
 }

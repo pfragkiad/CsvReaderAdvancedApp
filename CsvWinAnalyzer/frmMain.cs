@@ -71,11 +71,6 @@ namespace CsvWinAnalyzer
         }
 
 
-        private void btnReadHeader_Click(object sender, EventArgs e)
-        {
-            ReadHeader();
-        }
-
         private void ReadHeader()
         {
             var file = _fileFactory.GetFile(txtFilePath.Text, Encoding.UTF8, true);
@@ -121,6 +116,11 @@ namespace CsvWinAnalyzer
 
 
         private void btnExport_Click(object sender, EventArgs e)
+        {
+            ExportPartialCsv();
+        }
+
+        private void ExportPartialCsv()
         {
             string p = SourcePath;
             if (p.Length == 0 || !File.Exists(p))
@@ -185,8 +185,6 @@ namespace CsvWinAnalyzer
         private List<ListViewItem> SelectedHeaders { get => lvwHeader.SelectedItems.Cast<ListViewItem>().ToList(); }
 
         private List<ListViewItem> AllHeaders { get => lvwHeader.Items.Cast<ListViewItem>().ToList(); }
-
-        private List<int> SelectedColumns { get => SelectedHeaders.Select(l => int.Parse(l.Text) - 1).ToList(); }
 
         #region Analyze fields
 
@@ -266,7 +264,7 @@ namespace CsvWinAnalyzer
             }
             lvwHeader.ResumeLayout();
 
-            tstStatus.Text = "OK";
+            tstStatus.Text = "Ready";
             StopWaiting();
         }
 
@@ -355,48 +353,89 @@ namespace CsvWinAnalyzer
                 ShowWarning("The current path is empty or does not exist!");
                 return;
             }
-
-
-            if (lvwHeader.SelectedItems.Count == 0) return;
+            if (items.Count() == 0) return;
 
             Wait();
+
+
             string path = txtFilePath.Text;
             var encoding = Encoding.UTF8;
-            var file = _fileFactory.GetFile(txtFilePath.Text, Encoding.UTF8, true);
 
-            foreach (var item in items)
+
+            Dictionary<ListViewItem, CsvFieldTypeInfo> fieldStats = items.ToDictionary(
+                l => l,
+                l =>
+                new CsvFieldTypeInfo()
+                {
+                    Column = int.Parse(l.Text) - 1,
+                    BaseType = l.Tag is null ? BaseType.Unknown : (BaseType)l.Tag
+                });
+
+
+            var file = _fileFactory.GetFile(path, encoding, true);
+
+            tstStatus.Text = "Analyzing data types..."; statusStrip1.Refresh(); Application.DoEvents();
+            file.UpdateFieldBaseTypes(fieldStats.Values, maxRows);
+
+            lvwHeader.SuspendLayout();
+            foreach (var entry in fieldStats)
             {
-                int column = int.Parse(item.Text) - 1;
-                string columnName = item.SubItems[1].Text;
-                tstStatus.Text = $"Processing [{columnName}] data..."; statusStrip1.Refresh();
-
-                var dataType = file.GetBaseType(column, BaseType.Unknown, maxRows);
-                SetDataType(item, dataType);
+                ListViewItem item = entry.Key;
+                var stats = entry.Value;
+                SetDataType(item, stats.BaseType);
             }
 
-            tstStatus.Text = "OK";
+            tstStatus.Text = "Ready";
 
             StopWaiting();
         }
+
+
         #endregion
 
 
         private void btnExportSelectedToDatabase_Click(object sender, EventArgs e)
         {
+            ExportToDatabase(SelectedHeaders);
+        }
+
+        private void ExportToDatabase(IEnumerable<ListViewItem> items)
+        {
             frmDatabase frm = _provider.GetRequiredService<frmDatabase>();
-            frm.SelectedHeaders = SelectedHeaders;
+            frm.SelectedHeaders = items.ToList();
             frm.SourcePath = this.SourcePath;
             frm.Encoding = Encoding.UTF8;
             frm.ShowDialog();
         }
 
-        private void btnExportAllToDatabase_Click(object sender, EventArgs e)
+        private void mnuFileExit_Click(object sender, EventArgs e)
         {
-            frmDatabase frm = _provider.GetRequiredService<frmDatabase>();
-            frm.SelectedHeaders = AllHeaders;
-            frm.SourcePath = this.SourcePath;
-            frm.Encoding = Encoding.UTF8;
-            frm.ShowDialog();
+            Application.Exit();
+        }
+
+        private void mnuFindDataTypesAndRanges_Click(object sender, EventArgs e)
+        {
+            AnalyzeHeaders(AllHeaders);
+        }
+
+        private void mnuFindDataTypes_Click(object sender, EventArgs e)
+        {
+            FindDataTypes(AllHeaders);
+        }
+
+        private void mnuExportAllToDatabase_Click(object sender, EventArgs e)
+        {
+            ExportToDatabase(AllHeaders);
+        }
+
+        private void mnuExportSelectedToDatabase_Click(object sender, EventArgs e)
+        {
+            ExportToDatabase(SelectedHeaders);
+        }
+
+        private void mnuExportSelectedToCsvFile_Click(object sender, EventArgs e)
+        {
+            ExportPartialCsv();
         }
     }
 }

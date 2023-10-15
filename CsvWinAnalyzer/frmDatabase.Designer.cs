@@ -42,6 +42,7 @@
             progressBar1 = new ProgressBar();
             statusStrip1 = new StatusStrip();
             tstStatus = new ToolStripStatusLabel();
+            btnUpdate = new Button();
             statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -57,16 +58,17 @@
             // txtConnectionString
             // 
             txtConnectionString.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtConnectionString.Font = new Font("Consolas", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
             txtConnectionString.Location = new Point(160, 20);
             txtConnectionString.Multiline = true;
             txtConnectionString.Name = "txtConnectionString";
-            txtConnectionString.Size = new Size(601, 62);
+            txtConnectionString.Size = new Size(601, 94);
             txtConnectionString.TabIndex = 1;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(37, 159);
+            label2.Location = new Point(37, 191);
             label2.Name = "label2";
             label2.Size = new Size(106, 15);
             label2.TabIndex = 2;
@@ -75,17 +77,18 @@
             // txtCreateTable
             // 
             txtCreateTable.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            txtCreateTable.Location = new Point(160, 159);
+            txtCreateTable.Font = new Font("Consolas", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
+            txtCreateTable.Location = new Point(160, 188);
             txtCreateTable.Multiline = true;
             txtCreateTable.Name = "txtCreateTable";
             txtCreateTable.ScrollBars = ScrollBars.Vertical;
-            txtCreateTable.Size = new Size(601, 110);
+            txtCreateTable.Size = new Size(601, 158);
             txtCreateTable.TabIndex = 3;
             // 
             // btnTestConnection
             // 
             btnTestConnection.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnTestConnection.Location = new Point(628, 88);
+            btnTestConnection.Location = new Point(628, 120);
             btnTestConnection.Name = "btnTestConnection";
             btnTestConnection.Size = new Size(133, 23);
             btnTestConnection.TabIndex = 4;
@@ -96,7 +99,7 @@
             // btnTableExists
             // 
             btnTableExists.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnTableExists.Location = new Point(628, 275);
+            btnTableExists.Location = new Point(628, 352);
             btnTableExists.Name = "btnTableExists";
             btnTableExists.Size = new Size(133, 23);
             btnTableExists.TabIndex = 4;
@@ -107,7 +110,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(37, 118);
+            label3.Location = new Point(37, 150);
             label3.Name = "label3";
             label3.Size = new Size(71, 15);
             label3.TabIndex = 5;
@@ -115,7 +118,7 @@
             // 
             // txtTargetTable
             // 
-            txtTargetTable.Location = new Point(160, 115);
+            txtTargetTable.Location = new Point(160, 147);
             txtTargetTable.Name = "txtTargetTable";
             txtTargetTable.Size = new Size(202, 23);
             txtTargetTable.TabIndex = 6;
@@ -125,7 +128,7 @@
             // btnCreateTable
             // 
             btnCreateTable.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCreateTable.Location = new Point(489, 275);
+            btnCreateTable.Location = new Point(489, 352);
             btnCreateTable.Name = "btnCreateTable";
             btnCreateTable.Size = new Size(133, 23);
             btnCreateTable.TabIndex = 4;
@@ -136,7 +139,7 @@
             // btnSaveToDatabase
             // 
             btnSaveToDatabase.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSaveToDatabase.Location = new Point(160, 275);
+            btnSaveToDatabase.Location = new Point(160, 352);
             btnSaveToDatabase.Name = "btnSaveToDatabase";
             btnSaveToDatabase.Size = new Size(133, 23);
             btnSaveToDatabase.TabIndex = 4;
@@ -147,7 +150,7 @@
             // btnClearTable
             // 
             btnClearTable.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnClearTable.Location = new Point(350, 275);
+            btnClearTable.Location = new Point(350, 352);
             btnClearTable.Name = "btnClearTable";
             btnClearTable.Size = new Size(133, 23);
             btnClearTable.TabIndex = 4;
@@ -158,7 +161,7 @@
             // progressBar1
             // 
             progressBar1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            progressBar1.Location = new Point(160, 304);
+            progressBar1.Location = new Point(160, 381);
             progressBar1.Name = "progressBar1";
             progressBar1.Size = new Size(601, 23);
             progressBar1.TabIndex = 7;
@@ -167,7 +170,7 @@
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { tstStatus });
-            statusStrip1.Location = new Point(0, 344);
+            statusStrip1.Location = new Point(0, 421);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(798, 22);
             statusStrip1.TabIndex = 8;
@@ -176,14 +179,25 @@
             // tstStatus
             // 
             tstStatus.Name = "tstStatus";
-            tstStatus.Size = new Size(23, 17);
-            tstStatus.Text = "OK";
+            tstStatus.Size = new Size(39, 17);
+            tstStatus.Text = "Ready";
+            // 
+            // btnUpdate
+            // 
+            btnUpdate.Location = new Point(368, 147);
+            btnUpdate.Name = "btnUpdate";
+            btnUpdate.Size = new Size(75, 23);
+            btnUpdate.TabIndex = 9;
+            btnUpdate.Text = "Update";
+            btnUpdate.UseVisualStyleBackColor = true;
+            btnUpdate.Click += btnUpdate_Click;
             // 
             // frmDatabase
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(798, 366);
+            ClientSize = new Size(798, 443);
+            Controls.Add(btnUpdate);
             Controls.Add(statusStrip1);
             Controls.Add(progressBar1);
             Controls.Add(txtTargetTable);
@@ -221,5 +235,6 @@
         private ProgressBar progressBar1;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel tstStatus;
+        private Button btnUpdate;
     }
 }

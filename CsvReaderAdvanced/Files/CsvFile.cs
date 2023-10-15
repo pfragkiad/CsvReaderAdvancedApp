@@ -213,6 +213,7 @@ public class CsvFile : IDisposable
         //read header and populate columns
         if (Header is null) ReadHeader();
 
+        //initialize fieldtypeinfos based on all the existing fields
         if(ExistingFieldTypeInfos.Count==0)
             ExistingFieldTypeInfos = ExistingColumns.Select(e => new CsvFieldTypeInfo() { Column = e.Value, BaseType = BaseType.Unknown }).ToList();
 
