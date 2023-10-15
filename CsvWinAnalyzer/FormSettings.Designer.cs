@@ -46,5 +46,17 @@ namespace CsvWinAnalyzer {
                 this["ConnectionString"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NEW_TABLE")]
+        public string TargetTable {
+            get {
+                return ((string)(this["TargetTable"]));
+            }
+            set {
+                this["TargetTable"] = value;
+            }
+        }
     }
 }

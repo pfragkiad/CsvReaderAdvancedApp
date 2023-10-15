@@ -36,6 +36,13 @@
             btnTableExists = new Button();
             label3 = new Label();
             txtTargetTable = new TextBox();
+            btnCreateTable = new Button();
+            btnSaveToDatabase = new Button();
+            btnClearTable = new Button();
+            progressBar1 = new ProgressBar();
+            statusStrip1 = new StatusStrip();
+            tstStatus = new ToolStripStatusLabel();
+            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // label1
@@ -53,7 +60,7 @@
             txtConnectionString.Location = new Point(160, 20);
             txtConnectionString.Multiline = true;
             txtConnectionString.Name = "txtConnectionString";
-            txtConnectionString.Size = new Size(652, 62);
+            txtConnectionString.Size = new Size(601, 62);
             txtConnectionString.TabIndex = 1;
             // 
             // label2
@@ -67,18 +74,18 @@
             // 
             // txtCreateTable
             // 
-            txtCreateTable.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtCreateTable.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             txtCreateTable.Location = new Point(160, 159);
             txtCreateTable.Multiline = true;
             txtCreateTable.Name = "txtCreateTable";
             txtCreateTable.ScrollBars = ScrollBars.Vertical;
-            txtCreateTable.Size = new Size(652, 90);
+            txtCreateTable.Size = new Size(601, 110);
             txtCreateTable.TabIndex = 3;
             // 
             // btnTestConnection
             // 
             btnTestConnection.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnTestConnection.Location = new Point(679, 88);
+            btnTestConnection.Location = new Point(628, 88);
             btnTestConnection.Name = "btnTestConnection";
             btnTestConnection.Size = new Size(133, 23);
             btnTestConnection.TabIndex = 4;
@@ -88,8 +95,8 @@
             // 
             // btnTableExists
             // 
-            btnTableExists.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnTableExists.Location = new Point(679, 255);
+            btnTableExists.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnTableExists.Location = new Point(628, 275);
             btnTableExists.Name = "btnTableExists";
             btnTableExists.Size = new Size(133, 23);
             btnTableExists.TabIndex = 4;
@@ -115,13 +122,75 @@
             txtTargetTable.Text = "NEW_TABLE";
             txtTargetTable.KeyDown += txtTargetTable_KeyDown;
             // 
+            // btnCreateTable
+            // 
+            btnCreateTable.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnCreateTable.Location = new Point(489, 275);
+            btnCreateTable.Name = "btnCreateTable";
+            btnCreateTable.Size = new Size(133, 23);
+            btnCreateTable.TabIndex = 4;
+            btnCreateTable.Text = "Create table";
+            btnCreateTable.UseVisualStyleBackColor = true;
+            btnCreateTable.Click += btnCreateTable_Click;
+            // 
+            // btnSaveToDatabase
+            // 
+            btnSaveToDatabase.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSaveToDatabase.Location = new Point(160, 275);
+            btnSaveToDatabase.Name = "btnSaveToDatabase";
+            btnSaveToDatabase.Size = new Size(133, 23);
+            btnSaveToDatabase.TabIndex = 4;
+            btnSaveToDatabase.Text = "Save to database...";
+            btnSaveToDatabase.UseVisualStyleBackColor = true;
+            btnSaveToDatabase.Click += btnSaveToDatabase_Click;
+            // 
+            // btnClearTable
+            // 
+            btnClearTable.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnClearTable.Location = new Point(350, 275);
+            btnClearTable.Name = "btnClearTable";
+            btnClearTable.Size = new Size(133, 23);
+            btnClearTable.TabIndex = 4;
+            btnClearTable.Text = "Clear table";
+            btnClearTable.UseVisualStyleBackColor = true;
+            btnClearTable.Click += btnClearTable_Click;
+            // 
+            // progressBar1
+            // 
+            progressBar1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            progressBar1.Location = new Point(160, 304);
+            progressBar1.Name = "progressBar1";
+            progressBar1.Size = new Size(601, 23);
+            progressBar1.TabIndex = 7;
+            progressBar1.Visible = false;
+            // 
+            // statusStrip1
+            // 
+            statusStrip1.Items.AddRange(new ToolStripItem[] { tstStatus });
+            statusStrip1.Location = new Point(0, 344);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Size = new Size(798, 22);
+            statusStrip1.TabIndex = 8;
+            statusStrip1.Text = "statusStrip1";
+            // 
+            // tstStatus
+            // 
+            tstStatus.Name = "tstStatus";
+            tstStatus.Size = new Size(23, 17);
+            tstStatus.Text = "OK";
+            // 
             // frmDatabase
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(849, 329);
+            ClientSize = new Size(798, 366);
+            Controls.Add(statusStrip1);
+            Controls.Add(progressBar1);
             Controls.Add(txtTargetTable);
             Controls.Add(label3);
+            Controls.Add(btnSaveToDatabase);
+            Controls.Add(btnClearTable);
+            Controls.Add(btnCreateTable);
             Controls.Add(btnTableExists);
             Controls.Add(btnTestConnection);
             Controls.Add(txtCreateTable);
@@ -130,6 +199,8 @@
             Controls.Add(label1);
             Name = "frmDatabase";
             Text = "Copy to database";
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -144,5 +215,11 @@
         private Button btnTableExists;
         private Label label3;
         private TextBox txtTargetTable;
+        private Button btnCreateTable;
+        private Button btnSaveToDatabase;
+        private Button btnClearTable;
+        private ProgressBar progressBar1;
+        private StatusStrip statusStrip1;
+        private ToolStripStatusLabel tstStatus;
     }
 }

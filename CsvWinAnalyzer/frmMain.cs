@@ -3,9 +3,12 @@ using CsvReaderAdvanced.Interfaces;
 using CsvReaderAdvanced.Schemas;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
+using System.Data.Common;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 
 namespace CsvWinAnalyzer
@@ -65,9 +68,6 @@ namespace CsvWinAnalyzer
             FormSettings.Default.Save();
             base.OnClosing(e);
         }
-
-
-
 
 
         private void btnReadHeader_Click(object sender, EventArgs e)
@@ -203,7 +203,7 @@ namespace CsvWinAnalyzer
 
         private void btnAnalyzeAllField_Click(object sender, EventArgs e)
         {
-            AnalyzeHeaders(AllHeaders);
+            AnalyzeHeaders2(AllHeaders);
         }
 
 
@@ -292,6 +292,186 @@ namespace CsvWinAnalyzer
 
             tstStatus.Text = "OK";
             StopWaiting();
+        }
+
+        private void AnalyzeHeaders3(IEnumerable<ListViewItem> items)
+        {
+            Stopwatch w = Stopwatch.StartNew();
+
+            string p = SourcePath;
+            if (p.Length == 0 || !File.Exists(p))
+            {
+                ShowWarning("The current path is emppty or does not exist!");
+                return;
+            }
+
+            if (items.Count() == 0) return;
+
+            Wait();
+
+            string path = txtFilePath.Text;
+            var encoding = Encoding.UTF8;
+
+            //var file = _csvFiles.ReadWholeFile(path, encoding, true);
+
+            List<ListViewItem> list = items.ToList();
+            BaseType?[] initialBaseTypes = list.Select(l => (BaseType?)(l.Tag is null ? null : (BaseType)l.Tag)).ToArray();
+            BaseType[] baseTypes = new BaseType[list.Count];
+            int[] columns = list.Select(l=> int.Parse(l.Text)-1).ToArray();
+            CsvFieldStats[] fieldStats = new CsvFieldStats[list.Count];
+
+            tstStatus.Text = "Analyzing data types..."; statusStrip1.Refresh(); Application.DoEvents();
+
+            Parallel.ForEach(Enumerable.Range(0, list.Count), i =>
+            {
+                var file = _csvFiles.GetFile(path, encoding, true);
+
+                if (initialBaseTypes[i] is null)
+                    baseTypes[i] = file.GetBaseType(columns[i], path, encoding, BaseType.Unknown, true);
+                else
+                    baseTypes[i] = initialBaseTypes[i]!.Value;
+            });
+
+
+            tstStatus.Text = "Retrieving field stats..."; statusStrip1.Refresh(); Application.DoEvents();
+         
+            Parallel.ForEach(Enumerable.Range(0, list.Count), i =>
+            {
+                var file = _csvFiles.GetFile(path, encoding, true);
+
+                fieldStats[i] = file.GetFieldStats(columns[i], path, encoding, baseTypes[i], true);
+            });
+
+
+            tstStatus.Text = "Updating listview...";
+
+            for(int i=0;i<list.Count; i++)  
+            {
+                ListViewItem item = list[i];
+
+                SetDataType(item, baseTypes[i]);
+
+                if (baseTypes[i] == BaseType.Unknown)
+                {
+                    SetSubItem(item, 3, "-");
+                    SetSubItem(item, 4, "-");
+                    SetSubItem(item, 5, "-");
+                    SetSubItem(item, 6, "-");
+                    SetSubItem(item, 7, "-");
+                }
+                else
+                {
+                    var stats = fieldStats[i];
+                    SetSubItem(item, 3, stats.Minimum?.ToString() ?? "-");
+                    SetSubItem(item, 4, stats.Maximum?.ToString() ?? "-");
+                    SetSubItem(item, 5, stats.ValuesCount.ToString());
+                    SetSubItem(item, 6, stats.NullValuesCount.ToString());
+                    SetSubItem(item, 7, stats.UnparsedValuesCount.ToString());
+
+                }
+
+                lvwHeader.Refresh();
+            }
+
+            foreach (var col in lvwHeader.Columns.Cast<ColumnHeader>())
+            {
+                col.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                if (col.Width < 80) col.Width = 80;
+            }
+
+            tstStatus.Text = "OK";
+            StopWaiting();
+
+            w.Stop();
+            MessageBox.Show(w.Elapsed.TotalMinutes.ToString("0.0"));
+        }
+
+        private void AnalyzeHeaders2(IEnumerable<ListViewItem> items) //read file once
+        {
+            Stopwatch w = Stopwatch.StartNew();
+
+            string p = SourcePath;
+            if (p.Length == 0 || !File.Exists(p))
+            {
+                ShowWarning("The current path is emppty or does not exist!");
+                return;
+            }
+
+            if (items.Count() == 0) return;
+
+            Wait();
+
+            string path = txtFilePath.Text;
+            var encoding = Encoding.UTF8;
+
+            var file = _csvFiles.ReadWholeFile(path, encoding, true);
+
+            List<ListViewItem> list = items.ToList();
+            BaseType?[] initialBaseTypes = list.Select(l => (BaseType?)(l.Tag is null ? null : (BaseType)l.Tag)).ToArray();
+            BaseType[] baseTypes = new BaseType[list.Count];
+            int[] columns = list.Select(l => int.Parse(l.Text) - 1).ToArray();
+            CsvFieldStats[] fieldStats = new CsvFieldStats[list.Count];
+
+            tstStatus.Text = "Analyzing data types..."; statusStrip1.Refresh(); Application.DoEvents();
+
+            Parallel.ForEach(Enumerable.Range(0, list.Count), i =>
+            {
+                if (initialBaseTypes[i] is null)
+                    baseTypes[i] = file.GetBaseType(columns[i], BaseType.Unknown, true);
+                else
+                    baseTypes[i] = initialBaseTypes[i]!.Value;
+            });
+
+
+            tstStatus.Text = "Retrieving field stats..."; statusStrip1.Refresh(); Application.DoEvents();
+
+            Parallel.ForEach(Enumerable.Range(0, list.Count), i =>
+            {
+                fieldStats[i] = file.GetFieldStats(columns[i], baseTypes[i], true);
+            });
+
+
+            tstStatus.Text = "Updating listview...";
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                ListViewItem item = list[i];
+
+                SetDataType(item, baseTypes[i]);
+
+                if (baseTypes[i] == BaseType.Unknown)
+                {
+                    SetSubItem(item, 3, "-");
+                    SetSubItem(item, 4, "-");
+                    SetSubItem(item, 5, "-");
+                    SetSubItem(item, 6, "-");
+                    SetSubItem(item, 7, "-");
+                }
+                else
+                {
+                    var stats = fieldStats[i];
+                    SetSubItem(item, 3, stats.Minimum?.ToString() ?? "-");
+                    SetSubItem(item, 4, stats.Maximum?.ToString() ?? "-");
+                    SetSubItem(item, 5, stats.ValuesCount.ToString());
+                    SetSubItem(item, 6, stats.NullValuesCount.ToString());
+                    SetSubItem(item, 7, stats.UnparsedValuesCount.ToString());
+
+                }
+
+                lvwHeader.Refresh();
+            }
+
+            foreach (var col in lvwHeader.Columns.Cast<ColumnHeader>())
+            {
+                col.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                if (col.Width < 80) col.Width = 80;
+            }
+
+            tstStatus.Text = "OK";
+            StopWaiting();
+
+            w.Stop();
+            MessageBox.Show(w.Elapsed.TotalMinutes.ToString("0.0"));
         }
 
         #endregion
@@ -405,15 +585,22 @@ namespace CsvWinAnalyzer
         #endregion
 
 
-        private void btnExportToDatabase_Click(object sender, EventArgs e)
+        private void btnExportSelectedToDatabase_Click(object sender, EventArgs e)
         {
             frmDatabase frm = _provider.GetRequiredService<frmDatabase>();
-
             frm.SelectedHeaders = SelectedHeaders;
-
+            frm.SourcePath = this.SourcePath;
+            frm.Encoding = Encoding.UTF8;
             frm.ShowDialog();
         }
 
-     
+        private void btnExportAllToDatabase_Click(object sender, EventArgs e)
+        {
+            frmDatabase frm = _provider.GetRequiredService<frmDatabase>();
+            frm.SelectedHeaders = AllHeaders;
+            frm.SourcePath = this.SourcePath;
+            frm.Encoding = Encoding.UTF8;
+            frm.ShowDialog();
+        }
     }
 }

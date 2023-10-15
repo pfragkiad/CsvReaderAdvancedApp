@@ -61,7 +61,8 @@
             btnExport = new Button();
             btnAnalyzeAllField = new Button();
             btnFindDataTypes = new Button();
-            btnExportToDatabase = new Button();
+            btnExportSelectedToDatabase = new Button();
+            btnExportAllToDatabase = new Button();
             mnuField.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
@@ -71,13 +72,13 @@
             txtFilePath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtFilePath.Location = new Point(88, 35);
             txtFilePath.Name = "txtFilePath";
-            txtFilePath.Size = new Size(1099, 23);
+            txtFilePath.Size = new Size(982, 23);
             txtFilePath.TabIndex = 0;
             // 
             // btnBrowse
             // 
             btnBrowse.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowse.Location = new Point(1112, 64);
+            btnBrowse.Location = new Point(995, 64);
             btnBrowse.Name = "btnBrowse";
             btnBrowse.Size = new Size(75, 23);
             btnBrowse.TabIndex = 1;
@@ -108,7 +109,7 @@
             lvwHeader.FullRowSelect = true;
             lvwHeader.Location = new Point(88, 93);
             lvwHeader.Name = "lvwHeader";
-            lvwHeader.Size = new Size(1099, 313);
+            lvwHeader.Size = new Size(982, 350);
             lvwHeader.TabIndex = 5;
             lvwHeader.UseCompatibleStateImageBehavior = false;
             lvwHeader.View = View.Details;
@@ -248,9 +249,9 @@
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { tstStatus });
-            statusStrip1.Location = new Point(0, 485);
+            statusStrip1.Location = new Point(0, 522);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1222, 22);
+            statusStrip1.Size = new Size(1105, 22);
             statusStrip1.TabIndex = 6;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -263,7 +264,7 @@
             // btnExport
             // 
             btnExport.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnExport.Location = new Point(88, 426);
+            btnExport.Location = new Point(88, 463);
             btnExport.Name = "btnExport";
             btnExport.Size = new Size(100, 41);
             btnExport.TabIndex = 1;
@@ -274,7 +275,7 @@
             // btnAnalyzeAllField
             // 
             btnAnalyzeAllField.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnAnalyzeAllField.Location = new Point(300, 426);
+            btnAnalyzeAllField.Location = new Point(300, 463);
             btnAnalyzeAllField.Name = "btnAnalyzeAllField";
             btnAnalyzeAllField.Size = new Size(100, 41);
             btnAnalyzeAllField.TabIndex = 2;
@@ -284,7 +285,8 @@
             // 
             // btnFindDataTypes
             // 
-            btnFindDataTypes.Location = new Point(194, 426);
+            btnFindDataTypes.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnFindDataTypes.Location = new Point(194, 463);
             btnFindDataTypes.Name = "btnFindDataTypes";
             btnFindDataTypes.Size = new Size(100, 41);
             btnFindDataTypes.TabIndex = 7;
@@ -292,22 +294,35 @@
             btnFindDataTypes.UseVisualStyleBackColor = true;
             btnFindDataTypes.Click += btnFindDataTypes_Click;
             // 
-            // btnExportToDatabase
+            // btnExportSelectedToDatabase
             // 
-            btnExportToDatabase.Location = new Point(406, 426);
-            btnExportToDatabase.Name = "btnExportToDatabase";
-            btnExportToDatabase.Size = new Size(100, 41);
-            btnExportToDatabase.TabIndex = 8;
-            btnExportToDatabase.Text = "Export to database...";
-            btnExportToDatabase.UseVisualStyleBackColor = true;
-            btnExportToDatabase.Click += btnExportToDatabase_Click;
+            btnExportSelectedToDatabase.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnExportSelectedToDatabase.Location = new Point(970, 463);
+            btnExportSelectedToDatabase.Name = "btnExportSelectedToDatabase";
+            btnExportSelectedToDatabase.Size = new Size(100, 41);
+            btnExportSelectedToDatabase.TabIndex = 8;
+            btnExportSelectedToDatabase.Text = "Export selected to database...";
+            btnExportSelectedToDatabase.UseVisualStyleBackColor = true;
+            btnExportSelectedToDatabase.Click += btnExportSelectedToDatabase_Click;
+            // 
+            // btnExportAllToDatabase
+            // 
+            btnExportAllToDatabase.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnExportAllToDatabase.Location = new Point(864, 463);
+            btnExportAllToDatabase.Name = "btnExportAllToDatabase";
+            btnExportAllToDatabase.Size = new Size(100, 41);
+            btnExportAllToDatabase.TabIndex = 8;
+            btnExportAllToDatabase.Text = "Export all to database...";
+            btnExportAllToDatabase.UseVisualStyleBackColor = true;
+            btnExportAllToDatabase.Click += btnExportAllToDatabase_Click;
             // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1222, 507);
-            Controls.Add(btnExportToDatabase);
+            ClientSize = new Size(1105, 544);
+            Controls.Add(btnExportAllToDatabase);
+            Controls.Add(btnExportSelectedToDatabase);
             Controls.Add(btnFindDataTypes);
             Controls.Add(btnAnalyzeAllField);
             Controls.Add(statusStrip1);
@@ -359,6 +374,7 @@
         private Button btnFindDataTypes;
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripMenuItem mnuAnalyze;
-        private Button btnExportToDatabase;
+        private Button btnExportSelectedToDatabase;
+        private Button btnExportAllToDatabase;
     }
 }
