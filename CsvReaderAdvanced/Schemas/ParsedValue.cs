@@ -4,17 +4,24 @@ using System.Security.Cryptography;
 namespace CsvReaderAdvanced.Schemas;
 
 //public struct Unparsable { public static Unparsable Default = new Unparsable(); }
+public enum ParseState { Unknown, Parsed, Unparsable, Null }
+
 
 public readonly struct ParsedValue<T> where T : struct
 {
     //T? is not allowed as a value here
     public T? Value { get; init; } = null;
 
+    public ParseState State { get; init; } = ParseState.Unknown;
+
+    public bool IsParsed => State == ParseState.Parsed;
+    public bool IsNull => State == ParseState.Null;
+
     public string StringValue { get; init; } = default!;
 
-    public bool IsParsed { get; init; }
+    //public bool IsParsed { get; init; }
 
-    public bool IsNull => Value is null && !IsParsed;
+    //public bool IsNull { get; init; }
 
     public static implicit operator T?(ParsedValue<T> v)
     {
@@ -28,18 +35,18 @@ public readonly struct ParsedValue<T> where T : struct
 
     public ParsedValue(T? value, string stringValue)
     {
+        State = ParseState.Parsed;
         Value = value;
-        IsParsed = true;// IsNull = false;
         StringValue = stringValue;
     }
 
-    public static ParsedValue<T> Unparsable(string stringValue) => new ParsedValue<T>() { IsParsed = false, StringValue = stringValue };
+    public static ParsedValue<T> Unparsable(string stringValue) => new() { State = ParseState.Unparsable, StringValue = stringValue  };
 
-    public static readonly ParsedValue<T> Null = new ParsedValue<T>() { IsParsed = true };
+    public static readonly ParsedValue<T> Null = new() { State = ParseState.Null };
 
     public override string ToString()
     {
-        return $"'{StringValue}' -> {Value} ({(IsParsed ? "parsed" : "cannot parse")})";
+        return $"'{StringValue}' -> {Value} (State: {State})";
     }
 }
 

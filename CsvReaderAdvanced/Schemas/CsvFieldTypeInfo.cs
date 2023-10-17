@@ -53,18 +53,18 @@ public class CsvFieldTypeInfo
         if (BaseType == BaseType.Integer)
         {
             var value = t.GetInt(Column);
-            if (!value.IsParsed)
+
+            if (value.State == ParseState.Unparsable)
             {
                 UnparsedValuesCount++;
                 return;
             }
 
-            if (value.IsNull)
+            if (value.State == ParseState.Null)
             {
                 NullValuesCount++;
                 return;
             }
-
 
             if (!_statsStarted)
             {
@@ -104,13 +104,13 @@ public class CsvFieldTypeInfo
         else if (BaseType == BaseType.Float)
         {
             var value = t.GetFloat(Column);
-            if (!value.IsParsed)
+            if (value.State == ParseState.Unparsable)
             {
                 UnparsedValuesCount++;
                 return;
             }
 
-            if (value.IsNull)
+            if (value.State == ParseState.Null)
             {
                 NullValuesCount++;
                 return;
@@ -129,13 +129,13 @@ public class CsvFieldTypeInfo
         else if (BaseType == BaseType.Double)
         {
             var value = t.GetDouble(Column);
-            if (!value.IsParsed)
+            if (value.State == ParseState.Unparsable)
             {
                 UnparsedValuesCount++;
                 return;
             }
 
-            if (value.IsNull)
+            if (value.State == ParseState.Null)
             {
                 NullValuesCount++;
                 return;
@@ -154,13 +154,13 @@ public class CsvFieldTypeInfo
         else if (BaseType == BaseType.Long)
         {
             var value = t.GetLong(Column);
-            if (!value.IsParsed)
+            if (value.State == ParseState.Unparsable)
             {
                 UnparsedValuesCount++;
                 return;
             }
 
-            if (value.IsNull)
+            if (value.State == ParseState.Null)
             {
                 NullValuesCount++;
                 return;
@@ -180,13 +180,13 @@ public class CsvFieldTypeInfo
         else if (BaseType == BaseType.DateTimeOffset)
         {
             var value = t.GetDateTimeOffset(Column);
-            if (!value.IsParsed)
+            if (value.State == ParseState.Unparsable)
             {
                 UnparsedValuesCount++;
                 return;
             }
 
-            if (value.IsNull)
+            if (value.State == ParseState.Null)
             {
                 NullValuesCount++;
                 return;
@@ -205,12 +205,13 @@ public class CsvFieldTypeInfo
         else if (BaseType == BaseType.DateTime)
         {
             var value = t.GetDateTime(Column);
-            if (!value.IsParsed)
+            if (value.State == ParseState.Unparsable)
             {
                 UnparsedValuesCount++;
                 return;
             }
-            if (value.IsNull)
+
+            if (value.State == ParseState.Null)
             {
                 NullValuesCount++;
                 return;
@@ -230,13 +231,13 @@ public class CsvFieldTypeInfo
         {
             var value = t.GetBoolean(Column);
 
-            if (!value.IsParsed)
+            if (value.State == ParseState.Unparsable)
             {
                 UnparsedValuesCount++;
                 return;
             }
 
-            if (value.IsNull)
+            if (value.State == ParseState.Null)
             {
                 NullValuesCount++;
                 return;
@@ -306,34 +307,33 @@ public class CsvFieldTypeInfo
         string? dateTimeOffsetFormat = null)
     {
         //we do not continue
-        if (BaseType == BaseType.String) return;
-
+        if (BaseType == BaseType.String || t.Tokens[Column].Length == 0) return;
 
         //we arrive here the first time of a non-empty string
         if (BaseType == BaseType.Unknown) BaseType = BaseType.Boolean;
 
         //check from stricter to less stricter
-        if (BaseType == BaseType.Boolean && t.GetBoolean(Column).IsParsed) return;
+        if (BaseType == BaseType.Boolean && t.GetBoolean(Column).State == ParseState.Parsed) return;
 
         BaseType = BaseType.Integer;
-        if (BaseType == BaseType.Integer && t.GetInt(Column).IsParsed) return;
+        if (BaseType == BaseType.Integer && t.GetInt(Column).State == ParseState.Parsed) return;
 
         BaseType = BaseType.Long;
-        if (BaseType == BaseType.Long && t.GetLong(Column).IsParsed) return;
+        if (BaseType == BaseType.Long && t.GetLong(Column).State == ParseState.Parsed) return;
 
         BaseType = BaseType.Float;
-        if (BaseType == BaseType.Float && t.GetFloat(Column, CultureInfo.InvariantCulture).IsParsed) return;
+        if (BaseType == BaseType.Float && t.GetFloat(Column, CultureInfo.InvariantCulture).State == ParseState.Parsed) return;
 
         BaseType = BaseType.Double;
-        if (BaseType == BaseType.Double && t.GetDouble(Column, CultureInfo.InvariantCulture).IsParsed) return;
+        if (BaseType == BaseType.Double && t.GetDouble(Column, CultureInfo.InvariantCulture).State == ParseState.Parsed) return;
 
         //format should be passed for datetime formats
         BaseType = BaseType.DateTime;
-        if (BaseType == BaseType.DateTime && t.GetDateTime(Column, CultureInfo.InvariantCulture, dateTimeFormat).IsParsed) return;
+        if (BaseType == BaseType.DateTime && t.GetDateTime(Column, CultureInfo.InvariantCulture, dateTimeFormat).State == ParseState.Parsed) return;
 
         //2022-01-31T00:00:00+00:00
         BaseType = BaseType.DateTimeOffset;
-        if (BaseType == BaseType.DateTimeOffset && t.GetDateTimeOffset(Column, CultureInfo.InvariantCulture, dateTimeOffsetFormat).IsParsed) return;
+        if (BaseType == BaseType.DateTimeOffset && t.GetDateTimeOffset(Column, CultureInfo.InvariantCulture, dateTimeOffsetFormat).State == ParseState.Parsed) return;
 
         BaseType = BaseType.String; //no need to continue looping from here
 

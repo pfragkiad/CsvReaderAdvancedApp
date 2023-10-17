@@ -176,6 +176,8 @@ namespace CsvWinAnalyzer
         Dictionary<ListViewItem, CsvFieldTypeInfo> fieldStats = new();
         private void AnalyzeHeaders(IEnumerable<ListViewItem> items)
         {
+            Stopwatch w = Stopwatch.StartNew();
+
             string p = SourcePath;
             if (p.Length == 0 || !File.Exists(p))
             {
@@ -237,6 +239,8 @@ namespace CsvWinAnalyzer
 
             tstStatus.Text = "Ready";
             StopWaiting();
+
+            w.Stop(); ShowInfo($"Analyzed in {w.Elapsed.TotalMinutes:0.00} minutes.");
         }
 
         #endregion

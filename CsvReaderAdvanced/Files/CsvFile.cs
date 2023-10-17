@@ -38,7 +38,7 @@ public class CsvFile : IDisposable
         ExistingFieldColumns = new();
         MissingFields = new();
         MissingRequiredFields = new();
-        ExistingFieldTypeInfos = new ();
+        ExistingFieldTypeInfos = new();
     }
 
     public char? Separator { get; private set; }
@@ -214,7 +214,7 @@ public class CsvFile : IDisposable
         if (Header is null) ReadHeader();
 
         //initialize fieldtypeinfos based on all the existing fields
-        if(ExistingFieldTypeInfos.Count==0)
+        if (ExistingFieldTypeInfos.Count == 0)
             ExistingFieldTypeInfos = ExistingColumns.Select(e => new CsvFieldTypeInfo() { Column = e.Value, BaseType = BaseType.Unknown }).ToList();
 
         UpdateFieldBaseTypes(ExistingFieldTypeInfos, maxRows, dateTimeFormat, dateTimeOffsetFormat);
@@ -237,17 +237,25 @@ public class CsvFile : IDisposable
 
             var t = line.Value;
 
+
             foreach (var f in fields)
+            //Parallel.ForEach(fields, f =>
             {
-                if (f.BaseType == BaseType.String || t.Tokens[f.Column].Length == 0) continue;
+                if (f.BaseType == BaseType.String ||
+                    t.Tokens.Count - 1 <= f.Column ||
+                    t.Tokens[f.Column].Length == 0)
+                    //return;
+                    continue;
+
                 f.ProcessLineForBaseType(t, dateTimeFormat, dateTimeOffsetFormat);
             }
+            //);
         }
     }
 
     private BaseType GetBaseType(int column, BaseType assumedType, int maxRows, string? dateTimeFormat, string? dateTimeOffsetFormat, IEnumerable<TokenizedLine?> lines)
     {
-        CsvFieldTypeInfo stats = new CsvFieldTypeInfo(){Column = column,BaseType = assumedType };
+        CsvFieldTypeInfo stats = new CsvFieldTypeInfo() { Column = column, BaseType = assumedType };
 
         int iRow = 0;
         foreach (var line in lines)
@@ -259,7 +267,7 @@ public class CsvFile : IDisposable
             var t = line.Value;
             if (t.Tokens[column].Length == 0) continue;
 
-            stats.ProcessLineForBaseType(t,dateTimeFormat,dateTimeOffsetFormat);
+            stats.ProcessLineForBaseType(t, dateTimeFormat, dateTimeOffsetFormat);
         }
         return stats.BaseType;
     }
@@ -271,7 +279,7 @@ public class CsvFile : IDisposable
         string? dateTimeFormat = null,
         string? dateTimeOffsetFormat = null)
     {
-        var lines = Lines is not null? Lines : Read(_hasHeader);
+        var lines = Lines is not null ? Lines : Read(_hasHeader);
         return GetBaseType(column, assumedType, maxRows, dateTimeFormat, dateTimeOffsetFormat, lines);
     }
 
@@ -354,7 +362,7 @@ public class CsvFile : IDisposable
         int maxRows = int.MaxValue)
     {
         //initialize stats
-        foreach(var f in fields) 
+        foreach (var f in fields)
             f.StartStats();
 
         int iRow = 0;
@@ -366,7 +374,9 @@ public class CsvFile : IDisposable
 
             var t = line.Value;
             foreach (var f in fields)
+                //Parallel.ForEach(fields,f =>
                 f.ProcessLineForStats(t);
+            //);
         }
 
         foreach (var f in fields)

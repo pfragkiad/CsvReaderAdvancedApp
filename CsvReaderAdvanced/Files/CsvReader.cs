@@ -1,10 +1,11 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using System.Diagnostics;
 using System.Text;
 
 
 namespace CsvReaderAdvanced.Files;
 
-public class CsvReader 
+public class CsvReader
 {
     //internal static void TestsFirst()
     //{
@@ -114,6 +115,9 @@ public class CsvReader
         string quotedToken = previousIncompleteTokenizedLine?.TrailingQuotedItem ?? "";
         bool lastAddedItemWasQuoted = false;
 
+        //we assume that unquotedTokens do not continue to the next line
+        string unquotedToken = "";
+
         int len = line.Length;
         for (int i = 0; i < len; i++)
         {
@@ -124,9 +128,18 @@ public class CsvReader
             if (c == quote)
                 if (!isCurrentTokenQuoted)
                 {
-                    //initialize new quoted token
-                    isCurrentTokenQuoted = true;
-                    quotedToken = "";
+                    if (currentTokenStart == i)
+                    {
+                        //initialize new quoted token
+                        isCurrentTokenQuoted = true;
+                        quotedToken = "";
+                    }
+                    //the token has already started without a start quote - the only way that this is valid is if the next character is a quote
+                    else if (i < len - 2 && line[i + 1] == quote)
+                    {
+                        unquotedToken += $"{quote}";
+                        i += 1;
+                    }
                 }
                 else //there is already a quote open -> always retrieve next character here to decide properly 
                 {
@@ -145,7 +158,7 @@ public class CsvReader
                     //check for the next token if it is another quote of separator
                     c = line[i];
                     if (c == quote)// "" case
-                        quotedToken += "\"";
+                        quotedToken += $"{quote}";
                     //last quote
                     else if (c == separator && (quotedToken.Length > 0 || !omitEmptyEntries))
                     {
@@ -163,15 +176,21 @@ public class CsvReader
                 if (!isCurrentTokenQuoted)
                 {
                     if (i > currentTokenStart || !omitEmptyEntries)
-                        tokens.Add(line[currentTokenStart..i]);
+                        //tokens.Add(line[currentTokenStart..i]);
+                        tokens.Add(unquotedToken);
 
                     currentTokenStart = i + 1;
+                    unquotedToken = "";
                 }
                 else quotedToken += c;
             }
             else if (isCurrentTokenQuoted)
                 quotedToken += c;
+            else
+                unquotedToken += c;
         }
+
+
         if (!lastAddedItemWasQuoted && !isCurrentTokenQuoted && (currentTokenStart != line.Length || !omitEmptyEntries))
             tokens.Add(line[currentTokenStart..line.Length]);
 
