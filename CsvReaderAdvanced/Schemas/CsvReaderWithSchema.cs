@@ -14,6 +14,8 @@ namespace CsvReaderAdvanced.Schemas;
 public abstract class CsvReaderWithSchema 
 {
     private readonly CsvFileFactory _fileFactory;
+
+    protected CsvFile? _file; //file is generated from the _fileFactory after the import
     protected readonly ILogger _logger;
     protected readonly CsvSchemaOptions _options;
 
@@ -66,9 +68,9 @@ public abstract class CsvReaderWithSchema
         return await reader.ReadToEndAsync();
     }
 
-    public async Task<ReaderReport> Import(HttpRequest req)
+    public async Task<ReaderReport> Import(HttpRequest request)
     {
-        string content = await ReadUtf8FileContent(req);
+        string content = await ReadUtf8FileContent(request);
 
         string tempFilePath = Path.GetTempFileName();
         File.WriteAllText(tempFilePath, content);
@@ -79,6 +81,9 @@ public abstract class CsvReaderWithSchema
 
         return result;
     }
+
+
+
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public virtual async Task<ReaderReport> Import(string filePath)
@@ -96,7 +101,7 @@ public abstract class CsvReaderWithSchema
                 };
         }
 
-        var _file = _fileFactory.ReadWholeFile(filePath, Encoding.UTF8, true);
+        _file = _fileFactory.ReadWholeFile(filePath, Encoding.UTF8, true);
 
         //schema is needed for reporting missing columns
         _file.CheckAgainstSchema(CsvSchema!);
@@ -600,6 +605,7 @@ public abstract class CsvReaderWithSchema
 
 
     static readonly CultureInfo _en = CultureInfo.InvariantCulture;
+
 
     public static ParsedValue<double> GetDouble(string sValue, CultureInfo? info = null)
     {

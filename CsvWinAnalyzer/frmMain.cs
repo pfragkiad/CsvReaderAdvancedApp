@@ -346,12 +346,12 @@ namespace CsvWinAnalyzer
 
             Dictionary<ListViewItem, CsvFieldTypeInfo> fieldStats = items.ToDictionary(
                 l => l,
-                l =>
+                l => l.Tag is null ?
                 new CsvFieldTypeInfo()
                 {
                     Column = int.Parse(l.Text) - 1,
-                    BaseType = l.Tag is null ? BaseType.Unknown : (BaseType)l.Tag
-                });
+                    BaseType =  BaseType.Unknown
+                } : (CsvFieldTypeInfo)l.Tag);
 
 
             var file = _fileFactory.GetFile(path, encoding, true);
