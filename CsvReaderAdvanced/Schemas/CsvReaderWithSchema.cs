@@ -768,6 +768,66 @@ public abstract class CsvReaderWithSchema
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
 
+    #region  GetIdByName (multiple collections)
+
+    protected static int? GetIdByName<T>(
+        string fieldName,
+
+        Dictionary<string, int> columns, TokenizedLine line,
+
+        List<ValidationFailure> failures,
+        List<Dictionary<string, T>> collectionsByName,
+        bool allowNull)
+    {
+        if (!columns.TryGetValue(fieldName, out int column)) return null;
+        string? value = line.GetString(column);
+
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Line: {line.FromLine}");
+    }
+
+        protected static int? GetIdByName<T>(
+        string fieldName,
+
+        string? value, int recordNumber,
+
+        List<ValidationFailure> failures,
+        List<Dictionary<string, T>> collectionsByName,
+        bool allowNull)
+    {
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Record: {recordNumber}");
+    }
+
+
+    protected static int? GetIdByName<T>(
+        string fieldName,
+        string? value,
+        List<ValidationFailure> failures,
+        List<Dictionary<string, T>> collectionsByName,
+        bool allowNull, 
+        string reportLocation)
+    {
+        if (value is null)
+        {
+            if (!allowNull) //Line: {line.FromLine}
+                failures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. {reportLocation}." });
+            return null;
+        }
+
+        int? id = collectionsByName
+            .Where(c => c.ContainsKey(value))
+            .Select(c => (c[value]! as dynamic).Id).FirstOrDefault();
+
+        if (id is null)
+        {
+            failures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} '{value}' was not found. {reportLocation}." });
+            return null;
+        }
+
+        return id;
+    }
+    #endregion
+
+
     #endregion
 
 
