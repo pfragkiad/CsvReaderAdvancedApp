@@ -11,7 +11,7 @@ using System.Text;
 
 namespace CsvReaderAdvanced.Schemas;
 
-public abstract class CsvReaderWithSchema 
+public abstract class CsvReaderWithSchema
 {
     private readonly CsvFileFactory _fileFactory;
 
@@ -148,13 +148,18 @@ public abstract class CsvReaderWithSchema
 
 
         ParsedValue<int> valueToken = line.GetInt(fieldName, c);
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
 
         //we allow null if we arrive here
-        if (!valueToken.IsNull && !idCollection.ContainsKey(valueToken))
+        else if (!idCollection.ContainsKey(valueToken))
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} '{valueToken.Value}' was not found. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
@@ -167,13 +172,18 @@ public abstract class CsvReaderWithSchema
         bool allowNull)
     {
         ParsedValue<int> valueToken = GetInt(sValue);
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
 
         //we allow null if we arrive here
-        if (!valueToken.IsNull && !idCollection.ContainsKey(valueToken))
+        else if (!idCollection.ContainsKey(valueToken))
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} '{valueToken.Value}' was not found. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
@@ -212,10 +222,15 @@ public abstract class CsvReaderWithSchema
 
         var valueToken = line.GetBool(fieldName, c);
 
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
     }
@@ -227,10 +242,15 @@ public abstract class CsvReaderWithSchema
     {
         var valueToken = GetBool(sValue);
 
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
     }
@@ -269,10 +289,15 @@ public abstract class CsvReaderWithSchema
 
         var valueToken = line.GetDateTimeOffset(fieldName, c);
 
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
     }
@@ -283,10 +308,15 @@ public abstract class CsvReaderWithSchema
     {
         var valueToken = GetDateTimeOffset(sValue);
 
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
 
         return valueToken;
     }
@@ -395,10 +425,15 @@ public abstract class CsvReaderWithSchema
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
         ParsedValue<double> valueToken = line.GetDouble(fieldName, c);
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
         else if (
             minimumLimit.HasValue && maximumLimit.HasValue &&
             (valueToken.Value < minimumLimit || valueToken.Value > maximumLimit))
@@ -443,10 +478,15 @@ public abstract class CsvReaderWithSchema
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
         ParsedValue<int> valueToken = line.GetInt(fieldName, c);
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
         else if (
             minimumLimit.HasValue && maximumLimit.HasValue &&
             (valueToken.Value < minimumLimit || valueToken.Value > maximumLimit))
@@ -481,10 +521,15 @@ public abstract class CsvReaderWithSchema
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
         ParsedValue<double> valueToken = GetDouble(sValue);
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
         else if (
             minimumLimit.HasValue && maximumLimit.HasValue &&
             (valueToken.Value < minimumLimit || valueToken.Value > maximumLimit))
@@ -551,10 +596,15 @@ public abstract class CsvReaderWithSchema
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
         ParsedValue<int> valueToken = GetInt(sValue);
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
         if (!valueToken.IsParsed)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
-        else if (valueToken.IsNull && !allowNull)
-            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
         else if (
             minimumLimit.HasValue && maximumLimit.HasValue &&
             (valueToken.Value < minimumLimit || valueToken.Value > maximumLimit))
@@ -719,5 +769,46 @@ public abstract class CsvReaderWithSchema
     }
 
     #endregion
+
+
+    protected static int? GetId<T>(
+          string stringFieldName,
+          Dictionary<string, int> c, TokenizedLine line,
+          List<ValidationFailure> failures,
+          bool allowNull,
+          Func<string?, Task<T?>> GetItemFunction,
+          string reportLocation) where T : struct
+    {
+        bool fieldExists = c.ContainsKey(stringFieldName);
+        if (!fieldExists)
+        {
+            if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} field does not exist. Line: {line.FromLine}." });
+            return null;
+        }
+        return GetId(stringFieldName, line.GetString(c[stringFieldName]), failures, allowNull, GetItemFunction, $"Line: {line.FromLine}");
+    }
+
+    protected static int? GetId<T>(
+        string stringFieldName,
+        string? value,
+        List<ValidationFailure> failures,
+        bool allowNull,
+        Func<string?, Task<T?>> GetItemFunction,
+        string reportLocation) where T : struct
+    {
+        if (value is null)
+        {
+            if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} must not be empty. {reportLocation}." });
+            return null;
+        }
+
+        var item = GetItemFunction(value!).Result;
+        if (item is null)
+        {
+            if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} '{value}' was not found. {reportLocation}.", AttemptedValue = value });
+            return null;
+        }
+        return (item.Value as dynamic).Id;
+    }
 
 }
