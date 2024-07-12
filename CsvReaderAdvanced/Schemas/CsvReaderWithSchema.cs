@@ -31,6 +31,8 @@ public abstract class CsvReaderWithSchema
         CsvSchema = GetSchema(SchemaName);
     }
 
+    public bool TrimTokens { get; set; } = true;
+
     public abstract string SchemaName { get; }
 
     public CsvSchema? CsvSchema { get; init; }
@@ -40,7 +42,7 @@ public abstract class CsvReaderWithSchema
 
     public ValidationResult CheckSchema(string schemaName)
     {
-        if (_options?.Schemas is null || !_options.Schemas.Any())
+        if (_options?.Schemas is null || _options.Schemas.Count == 0)
         {
             _logger.LogError("Could not retrieve csv schemas from settings");
             return new ValidationResult(
@@ -56,7 +58,7 @@ public abstract class CsvReaderWithSchema
             _logger.LogError("Could not retrieve '{schemaName}' schema from settings", schemaName);
             return new ValidationResult(
                 new ValidationFailure[] {
-                    new ValidationFailure(schemaName,
+                    new(schemaName,
                     $"Cannot retrieve '{schemaName}' schema from settings") });
         }
         return new ValidationResult();
@@ -107,7 +109,7 @@ public abstract class CsvReaderWithSchema
         _file.CheckAgainstSchema(CsvSchema!);
 
         //if any of the required fields are missing then the importing cannot continue
-        if (_file.MissingRequiredFields.Any())
+        if (_file.MissingRequiredFields.Count != 0)
             return new ReaderReport
             {
                 Validation = new ValidationResult(
@@ -220,7 +222,7 @@ public abstract class CsvReaderWithSchema
     {
         if (!c.ContainsKey(fieldName)) return ParsedValue<bool>.Null;
 
-        var valueToken = line.GetBool(fieldName, c);
+        var valueToken = line.GetBoolean(fieldName, c);
 
         if (valueToken.IsNull)
         {

@@ -110,24 +110,25 @@ public struct TokenizedLine
     //    }
     //    return ParsedValue<T>.Unparsable;
     //}
-    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsEmpty = true) =>
-        GetString(columns[fieldName], assumeWhiteSpaceIsEmpty);
+    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsEmpty = true, bool trimValue = true) =>
+        GetString(columns[fieldName], assumeWhiteSpaceIsEmpty, trimValue);
 
-    public readonly string? GetString(int column, bool assumeWhiteSpaceIsEmpty = true)
+    public readonly string? GetString(int column, bool assumeWhiteSpaceIsEmpty = true, bool trimValue = true)
     {
         string sValue = Tokens[column];
         if (assumeWhiteSpaceIsEmpty && string.IsNullOrWhiteSpace(sValue) || string.IsNullOrEmpty(sValue))
             return null;
 
-        return sValue;
+        return trimValue ? sValue.Trim() : sValue;
     }
 
-    public readonly ParsedValue<bool> GetBool(string fieldName, Dictionary<string, int> columns)
-        => GetBoolean(columns[fieldName]);
+    public readonly ParsedValue<bool> GetBoolean(string fieldName, Dictionary<string, int> columns, bool trimValue = true)
+        => GetBoolean(columns[fieldName], trimValue);
 
-    public readonly ParsedValue<bool> GetBoolean(int column)
+    public readonly ParsedValue<bool> GetBoolean(int column, bool trimValue = true)
     {
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<bool>.Null;
 
         string sValueLower = sValue.ToLower();
@@ -141,97 +142,105 @@ public struct TokenizedLine
     }
 
 
-    public readonly ParsedValue<double> GetDouble(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null) =>
-        GetDouble(columns[fieldName], info);
+    public readonly ParsedValue<double> GetDouble(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true) =>
+        GetDouble(columns[fieldName], info, trimValue);
 
-    public readonly ParsedValue<double> GetDouble(int column, CultureInfo? info = null)
+    public readonly ParsedValue<double> GetDouble(int column, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<double>.Null;
         bool parsed = double.TryParse(sValue, info, out var doubleValue);
         return parsed ? new ParsedValue<double>(doubleValue, sValue) : ParsedValue<double>.Unparsable(sValue);
     }
 
-    public readonly ParsedValue<float> GetFloat(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null) =>
-        GetFloat(columns[fieldName], info);
+    public readonly ParsedValue<float> GetFloat(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true) =>
+        GetFloat(columns[fieldName], info,trimValue);
 
 
-    public readonly ParsedValue<float> GetFloat(int column, CultureInfo? info = null)
+    public readonly ParsedValue<float> GetFloat(int column, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<float>.Null;
         bool parsed = float.TryParse(sValue, info, out var floatValue);
         return parsed ? new ParsedValue<float>(floatValue, sValue) : ParsedValue<float>.Unparsable(sValue);
     }
 
-    public readonly string? GetString(string fieldName, Dictionary<string, int> columns) =>
-        GetString(columns[fieldName]);
+    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool trimValue = true) =>
+        GetString(columns[fieldName], trimValue);
 
-    public readonly string? GetString(int column)
+    public readonly string? GetString(int column, bool trimValue = true)
     {
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return null;
         return sValue;
     }
 
-    public readonly ParsedValue<int> GetInt(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
-        => GetInt(columns[fieldName], info);
+    public readonly ParsedValue<int> GetInt(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true)
+        => GetInt(columns[fieldName], info,trimValue);
 
-    public readonly ParsedValue<int> GetInt(int column, CultureInfo? info = null)
+    public readonly ParsedValue<int> GetInt(int column, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<int>.Null;
         bool parsed = int.TryParse(sValue, info, out int intValue);
         return parsed ? new ParsedValue<int>(intValue, sValue) : ParsedValue<int>.Unparsable(sValue);
     }
 
-    public readonly ParsedValue<byte> GetByte(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null) =>
-        GetByte(columns[fieldName], info);
+    public readonly ParsedValue<byte> GetByte(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true) =>
+        GetByte(columns[fieldName], info, trimValue);
 
-    public readonly ParsedValue<byte> GetByte(int column, CultureInfo? info = null)
+    public readonly ParsedValue<byte> GetByte(int column, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<byte>.Null;
         bool parsed = byte.TryParse(sValue, info, out byte byteValue);
         return parsed ? new ParsedValue<byte>(byteValue, sValue) : ParsedValue<byte>.Unparsable(sValue);
     }
 
-    public readonly ParsedValue<long> GetLong(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null)
-        => GetLong(columns[fieldName], info);
+    public readonly ParsedValue<long> GetLong(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true)
+        => GetLong(columns[fieldName], info, trimValue);
 
-    public readonly ParsedValue<long> GetLong(int column, CultureInfo? info = null)
+    public readonly ParsedValue<long> GetLong(int column, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<long>.Null;
         bool parsed = long.TryParse(sValue, info, out long longValue);
         return parsed ? new ParsedValue<long>(longValue, sValue) : ParsedValue<long>.Unparsable(sValue);
     }
 
-    public readonly ParsedValue<decimal> GetDecimal(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null) =>
-        GetDecimal(columns[fieldName], info);
+    public readonly ParsedValue<decimal> GetDecimal(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true) =>
+        GetDecimal(columns[fieldName], info, trimValue);
 
-    public readonly ParsedValue<decimal> GetDecimal(int column, CultureInfo? info = null)
+    public readonly ParsedValue<decimal> GetDecimal(int column, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<decimal>.Null;
         bool parsed = decimal.TryParse(sValue, info, out decimal decimalValue);
         return parsed ? new ParsedValue<decimal>(decimalValue, sValue) : ParsedValue<decimal>.Unparsable(sValue);
     }
 
-    public readonly ParsedValue<DateTime> GetDateTime(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, string? format = null) =>
-        GetDateTime(columns[fieldName], info, format);
+    public readonly ParsedValue<DateTime> GetDateTime(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, string? format = null, bool trimValue = true) =>
+        GetDateTime(columns[fieldName], info, format,trimValue);
 
 
-    public readonly ParsedValue<DateTime> GetDateTime(int column, CultureInfo? info = null, string? format = null)
+    public readonly ParsedValue<DateTime> GetDateTime(int column, CultureInfo? info = null, string? format = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<DateTime>.Null;
 
         DateTime dateTimeValue;
@@ -243,14 +252,15 @@ public struct TokenizedLine
         return parsed ? new ParsedValue<DateTime>(dateTimeValue, sValue) : ParsedValue<DateTime>.Unparsable(sValue);
     }
 
-    public readonly ParsedValue<DateTimeOffset> GetDateTimeOffset(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, string? format = null) =>
-        GetDateTimeOffset(columns[fieldName], info, format);
+    public readonly ParsedValue<DateTimeOffset> GetDateTimeOffset(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, string? format = null, bool trimValue = true) =>
+        GetDateTimeOffset(columns[fieldName], info, format, trimValue);
 
 
-    public readonly ParsedValue<DateTimeOffset> GetDateTimeOffset(int column, CultureInfo? info = null, string? format = null)
+    public readonly ParsedValue<DateTimeOffset> GetDateTimeOffset(int column, CultureInfo? info = null, string? format = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<DateTimeOffset>.Null;
 
         DateTimeOffset dateTimeValue;
