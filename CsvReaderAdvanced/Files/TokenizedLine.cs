@@ -110,18 +110,27 @@ public struct TokenizedLine
     //    }
     //    return ParsedValue<T>.Unparsable;
     //}
-    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsEmpty = true, bool trimValue = true) =>
-        GetString(columns[fieldName], assumeWhiteSpaceIsEmpty, trimValue);
+    //public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsEmpty = true, bool trimValue = true) =>
+    //    GetString(columns[fieldName], assumeWhiteSpaceIsEmpty, trimValue);
 
-    public readonly string? GetString(int column, bool assumeWhiteSpaceIsEmpty = true, bool trimValue = true)
+    //public readonly string? GetString(int column, bool assumeWhiteSpaceIsEmpty, bool trimValue = true)
+    //{
+    //    string sValue = Tokens[column];
+    //    if (assumeWhiteSpaceIsEmpty && string.IsNullOrWhiteSpace(sValue) || string.IsNullOrEmpty(sValue))
+    //        return null;
+
+    //    return trimValue ? sValue.Trim() : sValue;
+    //}
+    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsNull = true,bool trimValue = true) =>
+        GetString(columns[fieldName], assumeWhiteSpaceIsNull, trimValue);
+
+    public readonly string? GetString(int column,bool assumeWhiteSpaceIsNull = true, bool trimValue = true)
     {
         string sValue = Tokens[column];
-        if (assumeWhiteSpaceIsEmpty && string.IsNullOrWhiteSpace(sValue) || string.IsNullOrEmpty(sValue))
-            return null;
-
-        return trimValue ? sValue.Trim() : sValue;
+        if (trimValue) sValue = sValue.Trim();
+        if (sValue == "" && assumeWhiteSpaceIsNull) return null;
+        return sValue;
     }
-
     public readonly ParsedValue<bool> GetBoolean(string fieldName, Dictionary<string, int> columns, bool trimValue = true)
         => GetBoolean(columns[fieldName], trimValue);
 
@@ -169,16 +178,7 @@ public struct TokenizedLine
         return parsed ? new ParsedValue<float>(floatValue, sValue) : ParsedValue<float>.Unparsable(sValue);
     }
 
-    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool trimValue = true) =>
-        GetString(columns[fieldName], trimValue);
 
-    public readonly string? GetString(int column, bool trimValue = true)
-    {
-        string sValue = Tokens[column];
-        if (trimValue) sValue = sValue.Trim();
-        if (sValue == "") return null;
-        return sValue;
-    }
 
     public readonly ParsedValue<int> GetInt(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true)
         => GetInt(columns[fieldName], info,trimValue);
