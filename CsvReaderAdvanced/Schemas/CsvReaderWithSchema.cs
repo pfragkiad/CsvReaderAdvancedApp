@@ -31,8 +31,6 @@ public abstract class CsvReaderWithSchema
         CsvSchema = GetSchema(SchemaName);
     }
 
-    public bool TrimTokens { get; set; } = true;
-
     public abstract string SchemaName { get; }
 
     public CsvSchema? CsvSchema { get; init; }
@@ -138,7 +136,8 @@ public abstract class CsvReaderWithSchema
         TokenizedLine line,
         List<ValidationFailure> lineFailures,
         Dictionary<int, T> idCollection,
-        bool allowNull)
+        bool allowNull, bool trimValue = true
+       )
     {
         if (!c.ContainsKey(fieldName))
         {
@@ -149,7 +148,7 @@ public abstract class CsvReaderWithSchema
         }
 
 
-        ParsedValue<int> valueToken = line.GetInt(fieldName, c);
+        ParsedValue<int> valueToken = line.GetInt(fieldName, c, trimValue: trimValue);
         if (valueToken.IsNull)
         {
             if (!allowNull)
@@ -171,9 +170,9 @@ public abstract class CsvReaderWithSchema
         string fieldName, string sValue, int recordNumber,
         List<ValidationFailure> lineFailures,
         Dictionary<int, T> idCollection,
-        bool allowNull)
+        bool allowNull, bool trimValue = true)
     {
-        ParsedValue<int> valueToken = GetInt(sValue);
+        ParsedValue<int> valueToken = GetInt(sValue, trimValue: trimValue);
         if (valueToken.IsNull)
         {
             if (!allowNull)
@@ -205,24 +204,25 @@ public abstract class CsvReaderWithSchema
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} '{value}' was not found. Record: {recordNumber}.", AttemptedValue = value });
     }
 
-    public static ParsedValue<int> GetInt(string sValue, CultureInfo? info = null)
+    public static ParsedValue<int> GetInt(string sValue, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<int>.Null;
         bool parsed = int.TryParse(sValue, info, out int intValue);
         return parsed ? new ParsedValue<int>(intValue, sValue) : ParsedValue<int>.Unparsable(sValue);
     }
 
-    protected static ParsedValue<bool> CheckBool(
+    protected static ParsedValue<bool> CheckBoolean(
         string fieldName,
         Dictionary<string, int> c,
         TokenizedLine line,
         List<ValidationFailure> lineFailures,
-        bool allowNull)
+        bool allowNull, bool trimValue = true)
     {
         if (!c.ContainsKey(fieldName)) return ParsedValue<bool>.Null;
 
-        var valueToken = line.GetBoolean(fieldName, c);
+        var valueToken = line.GetBoolean(fieldName, c, trimValue: trimValue);
 
         if (valueToken.IsNull)
         {
@@ -237,12 +237,12 @@ public abstract class CsvReaderWithSchema
         return valueToken;
     }
 
-    protected static ParsedValue<bool> CheckBool(
+    protected static ParsedValue<bool> CheckBoolean(
         string fieldName, string sValue, int recordNumber,
         List<ValidationFailure> lineFailures,
-        bool allowNull)
+        bool allowNull, bool trimValue = true)
     {
-        var valueToken = GetBool(sValue);
+        var valueToken = GetBoolean(sValue, trimValue: trimValue);
 
         if (valueToken.IsNull)
         {
@@ -257,7 +257,7 @@ public abstract class CsvReaderWithSchema
         return valueToken;
     }
 
-    protected static void CheckBool(
+    protected static void CheckBoolean(
      string fieldName, bool? value, int recordNumber,
      List<ValidationFailure> lineFailures,
      bool allowNull)
@@ -266,8 +266,9 @@ public abstract class CsvReaderWithSchema
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = value });
     }
 
-    public static ParsedValue<bool> GetBool(string sValue)
+    public static ParsedValue<bool> GetBoolean(string sValue, bool trimValue = true)
     {
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<bool>.Null;
 
         string sValueLower = sValue.ToLower();
@@ -285,11 +286,11 @@ public abstract class CsvReaderWithSchema
         Dictionary<string, int> c,
         TokenizedLine line,
         List<ValidationFailure> lineFailures,
-        bool allowNull)
+        bool allowNull, bool trimValue = true)
     {
         if (!c.ContainsKey(fieldName)) return ParsedValue<DateTimeOffset>.Null;
 
-        var valueToken = line.GetDateTimeOffset(fieldName, c);
+        var valueToken = line.GetDateTimeOffset(fieldName, c, trimValue: trimValue);
 
         if (valueToken.IsNull)
         {
@@ -306,9 +307,9 @@ public abstract class CsvReaderWithSchema
     protected static ParsedValue<DateTimeOffset> CheckDateTimeOffset(
          string fieldName, string sValue, int recordNumber,
          List<ValidationFailure> lineFailures,
-         bool allowNull)
+         bool allowNull, bool trimValue = true)
     {
-        var valueToken = GetDateTimeOffset(sValue);
+        var valueToken = GetDateTimeOffset(sValue, trimValue: trimValue);
 
         if (valueToken.IsNull)
         {
@@ -331,9 +332,10 @@ public abstract class CsvReaderWithSchema
         if (value is null && !allowNull)
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = value });
     }
-    public static ParsedValue<DateTimeOffset> GetDateTimeOffset(string sValue, CultureInfo? info = null, string? format = null)
+    public static ParsedValue<DateTimeOffset> GetDateTimeOffset(string sValue, CultureInfo? info = null, string? format = null, bool trimValue = true)
     {
         info ??= _en;
+        if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<DateTimeOffset>.Null;
 
         DateTimeOffset dateTimeValue;
@@ -352,7 +354,7 @@ public abstract class CsvReaderWithSchema
         List<ValidationFailure> lineFailures,
         bool allowNull,
         Dictionary<string, Limit>? limitsByName = null,
-        string? limitsFieldName = null)
+        string? limitsFieldName = null, bool trimValue = true)
     {
         if (!c.ContainsKey(fieldName))
         {
@@ -365,6 +367,8 @@ public abstract class CsvReaderWithSchema
         limitsFieldName ??= fieldName;
 
         string value = line.Tokens[c[fieldName]];
+        if (trimValue) value = value.Trim();
+
         int? maximumLength = limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].MaximumLength : null
             : null;
@@ -382,9 +386,11 @@ public abstract class CsvReaderWithSchema
     List<ValidationFailure> lineFailures,
     bool allowNull,
     Dictionary<string, Limit>? limitsByName = null,
-    string? limitsFieldName = null)
+    string? limitsFieldName = null, bool trimValue = true)
     {
         limitsFieldName ??= fieldName;
+
+        if (trimValue) value = value?.Trim();
 
         int? maximumLength = limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].MaximumLength : null
@@ -405,7 +411,7 @@ public abstract class CsvReaderWithSchema
         List<ValidationFailure> lineFailures,
         bool allowNull,
         Dictionary<string, Limit>? limitsByName = null,
-        string? limitsFieldName = null)
+        string? limitsFieldName = null, bool trimValue = true)
     {
         if (!c.ContainsKey(fieldName))
         {
@@ -426,7 +432,7 @@ public abstract class CsvReaderWithSchema
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
-        ParsedValue<double> valueToken = line.GetDouble(fieldName, c);
+        ParsedValue<double> valueToken = line.GetDouble(fieldName, c, trimValue: trimValue);
         if (valueToken.IsNull)
         {
             if (!allowNull)
@@ -458,7 +464,7 @@ public abstract class CsvReaderWithSchema
     List<ValidationFailure> lineFailures,
     bool allowNull,
     Dictionary<string, Limit>? limitsByName = null,
-    string? limitsFieldName = null)
+    string? limitsFieldName = null, bool trimValue = true)
     {
         if (!c.ContainsKey(fieldName))
         {
@@ -479,7 +485,7 @@ public abstract class CsvReaderWithSchema
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
-        ParsedValue<int> valueToken = line.GetInt(fieldName, c);
+        ParsedValue<int> valueToken = line.GetInt(fieldName, c, trimValue: trimValue);
         if (valueToken.IsNull)
         {
             if (!allowNull)
@@ -503,13 +509,12 @@ public abstract class CsvReaderWithSchema
         return valueToken;
     }
 
-
     protected static ParsedValue<double> CheckDouble(
     string fieldName, string sValue, int recordNumber,
     List<ValidationFailure> lineFailures,
     bool allowNull,
     Dictionary<string, Limit>? limitsByName = null,
-    string? limitsFieldName = null)
+    string? limitsFieldName = null, bool trimValue = true)
     {
 
         limitsFieldName ??= fieldName;
@@ -522,7 +527,7 @@ public abstract class CsvReaderWithSchema
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
-        ParsedValue<double> valueToken = GetDouble(sValue);
+        ParsedValue<double> valueToken = GetDouble(sValue, trimValue: trimValue);
         if (valueToken.IsNull)
         {
             if (!allowNull)
@@ -579,13 +584,22 @@ public abstract class CsvReaderWithSchema
 
     }
 
+    public static ParsedValue<double> GetDouble(string sValue, CultureInfo? info = null, bool trimValue = true)
+    {
+        info ??= _en;
+        if (trimValue) sValue = sValue.Trim();
+        if (sValue == "") return ParsedValue<double>.Null;
+        bool parsed = double.TryParse(sValue, info, out var doubleValue);
+        return parsed ? new ParsedValue<double>(doubleValue, sValue) : ParsedValue<double>.Unparsable(sValue);
+    }
+
 
     protected static ParsedValue<int> CheckInt(
     string fieldName, string sValue, int recordNumber,
     List<ValidationFailure> lineFailures,
     bool allowNull,
     Dictionary<string, Limit>? limitsByName = null,
-    string? limitsFieldName = null)
+    string? limitsFieldName = null, bool trimValue = true)
     {
         limitsFieldName ??= fieldName;
         double? minimumLimit =
@@ -597,7 +611,7 @@ public abstract class CsvReaderWithSchema
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
-        ParsedValue<int> valueToken = GetInt(sValue);
+        ParsedValue<int> valueToken = GetInt(sValue, trimValue: trimValue);
         if (valueToken.IsNull)
         {
             if (!allowNull)
@@ -659,14 +673,6 @@ public abstract class CsvReaderWithSchema
     static readonly CultureInfo _en = CultureInfo.InvariantCulture;
 
 
-    public static ParsedValue<double> GetDouble(string sValue, CultureInfo? info = null)
-    {
-        info ??= _en;
-        if (sValue == "") return ParsedValue<double>.Null;
-        bool parsed = double.TryParse(sValue, info, out var doubleValue);
-        return parsed ? new ParsedValue<double>(doubleValue, sValue) : ParsedValue<double>.Unparsable(sValue);
-    }
-
 
     protected static string? CheckStringWithId<T>(
         string fieldName,
@@ -676,9 +682,9 @@ public abstract class CsvReaderWithSchema
         Dictionary<string, T> collection,
         bool allowNull,
         Dictionary<string, Limit>? limitsByName = null,
-        string? limitsFieldName = null)
+        string? limitsFieldName = null, bool trimValue = true)
     {
-        string? value = CheckString(fieldName, c, line, lineFailures, allowNull, limitsByName, limitsFieldName);
+        string? value = CheckString(fieldName, c, line, lineFailures, allowNull, limitsByName, limitsFieldName, trimValue: trimValue);
         if (value is null) return null;
 
         //if we arrive here the value is not null and an error can still occur if the value is not contained in the dictionary
@@ -694,9 +700,9 @@ public abstract class CsvReaderWithSchema
      Dictionary<string, T> collection,
      bool allowNull,
      Dictionary<string, Limit>? limitsByName = null,
-     string? limitsFieldName = null)
+     string? limitsFieldName = null, bool trimValue = true)
     {
-        string? value = CheckString(fieldName, sValue, recordNumber, lineFailures, allowNull, limitsByName, limitsFieldName);
+        string? value = CheckString(fieldName, sValue, recordNumber, lineFailures, allowNull, limitsByName, limitsFieldName, trimValue: trimValue);
         if (value is null) return null;
 
         //if we arrive here the value is not null and an error can still occur if the value is not contained in the dictionary
@@ -714,7 +720,7 @@ public abstract class CsvReaderWithSchema
         List<ValidationFailure> lineFailures,
         Dictionary<string, T> nameCollection,
         Dictionary<int, T> idCollection,
-        bool allowNull)
+        bool allowNull, bool trimValue = true)
     {
         if (!c.ContainsKey(stringFieldName) && !c.ContainsKey(intFieldName))
         {
@@ -726,10 +732,10 @@ public abstract class CsvReaderWithSchema
 
         string? name = null;
         ParsedValue<int> idToken = ParsedValue<int>.Null;
-        if (c.ContainsKey(intFieldName)) idToken = CheckIntId(intFieldName, c, line, lineFailures, idCollection, allowNull: true);
+        if (c.ContainsKey(intFieldName)) idToken = CheckIntId(intFieldName, c, line, lineFailures, idCollection, allowNull: true, trimValue: trimValue);
 
         //a failure will be added if the passed name is non-empty and is not included in the collection
-        if (c.ContainsKey(stringFieldName)) name = CheckStringWithId(stringFieldName, c, line, lineFailures, nameCollection, allowNull: true);
+        if (c.ContainsKey(stringFieldName)) name = CheckStringWithId(stringFieldName, c, line, lineFailures, nameCollection, allowNull: true, trimValue: trimValue);
         if (name is not null && !nameCollection.ContainsKey(name)) return null;
 
         if (name is null && idToken.IsNull)
@@ -751,10 +757,10 @@ public abstract class CsvReaderWithSchema
       TokenizedLine l,
       List<ValidationFailure> lineFailures,
       Dictionary<string, T> collectionByName,
-      bool allowNull)
+      bool allowNull, bool trimValue = true)
     {
         if (!c.ContainsKey(fieldName)) return null;
-        string? name = CheckStringWithId(fieldName, c, l, lineFailures, collectionByName, allowNull);
+        string? name = CheckStringWithId(fieldName, c, l, lineFailures, collectionByName, allowNull, trimValue: trimValue);
         if (name is null) return null;
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
@@ -763,9 +769,9 @@ public abstract class CsvReaderWithSchema
      string fieldName, string? value, int recordNumber,
      List<ValidationFailure> lineFailures,
      Dictionary<string, T> collectionByName,
-     bool allowNull)
+     bool allowNull, bool trimValue = true)
     {
-        string? name = CheckStringWithId(fieldName, value, recordNumber, lineFailures, collectionByName, allowNull);
+        string? name = CheckStringWithId(fieldName, value, recordNumber, lineFailures, collectionByName, allowNull, trimValue: trimValue);
         if (name is null) return null;
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
@@ -779,49 +785,50 @@ public abstract class CsvReaderWithSchema
 
         List<ValidationFailure> failures,
         List<Dictionary<string, T>> collectionsByName,
-        bool allowNull)
+        bool allowNull, bool trimValue = true)
     {
         if (!columns.TryGetValue(fieldName, out int column)) return null;
-        string? value = line.GetString(column);
+        string? value = line.GetString(column, trimValue: trimValue);
 
-        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Line: {line.FromLine}");
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Line: {line.FromLine}", trimValue: trimValue);
     }
 
-        protected static int? GetIdByName<T>(
-        string fieldName,
+    protected static int? GetIdByName<T>(
+    string fieldName,
 
-        string? value, int recordNumber,
+    string? value, int recordNumber,
 
-        List<ValidationFailure> failures,
-        List<Dictionary<string, T>> collectionsByName,
-        bool allowNull)
+    List<ValidationFailure> failures,
+    List<Dictionary<string, T>> collectionsByName,
+    bool allowNull, bool trimValue = true)
     {
-        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Record: {recordNumber}");
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Record: {recordNumber}", trimValue: trimValue);
     }
 
 
     protected static int? GetIdByName<T>(
         string fieldName,
-        string? value,
+        string? sValue,
         List<ValidationFailure> failures,
         List<Dictionary<string, T>> collectionsByName,
-        bool allowNull, 
-        string reportLocation)
+        bool allowNull,
+        string reportLocation, bool trimValue = true)
     {
-        if (value is null)
+        if (sValue is null)
         {
             if (!allowNull) //Line: {line.FromLine}
                 failures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. {reportLocation}." });
             return null;
         }
+        if (trimValue) sValue = sValue.Trim();
 
         int? id = collectionsByName
-            .Where(c => c.ContainsKey(value))
-            .Select(c => (c[value]! as dynamic).Id).FirstOrDefault();
+            .Where(c => c.ContainsKey(sValue))
+            .Select(c => (c[sValue]! as dynamic).Id).FirstOrDefault();
 
         if (id is null)
         {
-            failures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} '{value}' was not found. {reportLocation}." });
+            failures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} '{sValue}' was not found. {reportLocation}." });
             return null;
         }
 
@@ -838,8 +845,7 @@ public abstract class CsvReaderWithSchema
           Dictionary<string, int> c, TokenizedLine line,
           List<ValidationFailure> failures,
           bool allowNull,
-          Func<string?, Task<T?>> GetItemFunction,
-          string reportLocation) where T : struct
+          Func<string?, Task<T?>> GetItemFunction, bool trimValue = true) where T : struct
     {
         bool fieldExists = c.ContainsKey(stringFieldName);
         if (!fieldExists)
@@ -847,27 +853,29 @@ public abstract class CsvReaderWithSchema
             if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} field does not exist. Line: {line.FromLine}." });
             return null;
         }
-        return GetId(stringFieldName, line.GetString(c[stringFieldName]), failures, allowNull, GetItemFunction, $"Line: {line.FromLine}");
+        return GetId(stringFieldName, line.GetString(c[stringFieldName], trimValue: trimValue), failures, allowNull, GetItemFunction, $"Line: {line.FromLine}",trimValue:trimValue);
     }
 
     protected static int? GetId<T>(
         string stringFieldName,
-        string? value,
+        string? sValue,
         List<ValidationFailure> failures,
         bool allowNull,
         Func<string?, Task<T?>> GetItemFunction,
-        string reportLocation) where T : struct
+        string reportLocation, bool trimValue = true) where T : struct
     {
-        if (value is null)
+
+        if (sValue is null)
         {
             if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} must not be empty. {reportLocation}." });
             return null;
         }
+        if (trimValue) sValue = sValue.Trim();
 
-        var item = GetItemFunction(value!).Result;
+        var item = GetItemFunction(sValue!).Result;
         if (item is null)
         {
-            if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} '{value}' was not found. {reportLocation}.", AttemptedValue = value });
+            if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} '{sValue}' was not found. {reportLocation}.", AttemptedValue = sValue });
             return null;
         }
         return (item.Value as dynamic).Id;
