@@ -100,11 +100,13 @@ public class CsvFile : IDisposable
             yield break;
         }
 
-        var _streamReader = new StreamReader(_path, _encoding);
+        using StreamReader _streamReader = new StreamReader(_path, _encoding);
         if (skipHeader && _hasHeader) _reader.GetTokenizedLine(_streamReader.ReadLine(), 1, 1, null, Separator!.Value);
 
         foreach (var line in _reader.GetTokenizedLines(_streamReader, Separator!.Value))
             yield return line;
+
+        //_streamReader.Close();
     }
 
     #endregion
