@@ -215,30 +215,32 @@ public class CsvReader
     {
         while (!reader.EndOfStream)
         {
-            string? line = reader.ReadLine();
-            if (line is null && !omitEmptyEntries) yield return null;
-
             currentLineCounter++;
-            yield return new TokenizedLine()
-            {
-                FromLine = currentLineCounter,
-                ToLine = currentLineCounter,
-                Tokens = [.. line!.Split(separator)],
-                IsIncomplete = false
-            };
+            yield return GetTokenizedLineFast(reader, separator, omitEmptyEntries, currentLineCounter);
         }
     }
 
-    public IEnumerable<TokenizedLine?> GetTokenizedLineFast(
+    public TokenizedLine? GetTokenizedLineFast(
         StreamReader reader,
         char separator = ';',
         bool omitEmptyEntries = false,
         int currentLineCounter = 0)
     {
         string? line = reader.ReadLine();
-        if (line is null && !omitEmptyEntries) yield return null;
+        if (line is null) return null; //end of stream
 
-        yield return new TokenizedLine()
+        bool isWhiteSpace = string.IsNullOrWhiteSpace(line);
+        if (!omitEmptyEntries && isWhiteSpace) return null; //do not omit empty entry, return empty line
+
+        while (isWhiteSpace) //skip whitespace
+        {
+            line = reader.ReadLine();
+            if (line is null) return null; //end of stream
+
+            isWhiteSpace = string.IsNullOrWhiteSpace(line);
+        }
+
+        return new TokenizedLine()
         {
             FromLine = currentLineCounter,
             ToLine = currentLineCounter,

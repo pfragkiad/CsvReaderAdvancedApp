@@ -119,7 +119,17 @@ public class CsvFile : IDisposable
         }
 
         using StreamReader _streamReader = new StreamReader(_path, _encoding);
-        if (skipHeader && _hasHeader) _reader.GetTokenizedLineFast(_streamReader, Separator!.Value, true, 1);
+        if (skipHeader && _hasHeader)
+        {
+            //skip whitespace before the header
+            //string? line;
+            //do
+            //{
+            //    line = _streamReader.ReadLine();
+            //} while (string.IsNullOrWhiteSpace(line));
+
+            _reader.GetTokenizedLineFast(_streamReader, Separator!.Value, true);
+        }
 
         int lineCounter = 1;
         foreach (var line in _reader.GetTokenizedLinesFast(_streamReader, Separator!.Value, true, ++lineCounter))
