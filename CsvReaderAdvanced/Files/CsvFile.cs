@@ -109,6 +109,24 @@ public class CsvFile : IDisposable
         //_streamReader.Close();
     }
 
+    public IEnumerable<TokenizedLine?> ReadFast(bool skipHeader)
+    {
+        Separator = _reader.ReadSeparator(_path, _encoding);
+        if (Separator is null)
+        {
+            _logger.LogError("Cannot identify separator. Cannot not read file {path}.", _path);
+            yield break;
+        }
+
+        using StreamReader _streamReader = new StreamReader(_path, _encoding);
+        if (skipHeader && _hasHeader) _reader.GetTokenizedLineFast(_streamReader, Separator!.Value, true, 1);
+
+        int lineCounter = 1;
+        foreach (var line in _reader.GetTokenizedLinesFast(_streamReader, Separator!.Value, true, ++lineCounter))
+            yield return line;
+
+    }
+
     #endregion
 
 

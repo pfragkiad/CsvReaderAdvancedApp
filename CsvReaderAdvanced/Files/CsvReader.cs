@@ -65,6 +65,8 @@ public class CsvReader
         return stats.First().Separator;
     }
 
+
+
     public IEnumerable<TokenizedLine?> GetTokenizedLines(
         StreamReader reader,
         char separator = ';',
@@ -77,7 +79,7 @@ public class CsvReader
         {
             iLine++;
             string? line = reader.ReadLine();
-            if (line == "") continue; //omit empty lines
+            if (line == "") continue; //omit empty lines BEFORE header
             if (line is null) break;
 
             int iStartLine = iLine;
@@ -201,6 +203,47 @@ public class CsvReader
             Tokens = tokens,
             TrailingQuotedItem = quotedToken,
             IsIncomplete = isCurrentTokenQuoted
+        };
+    }
+
+
+    public IEnumerable<TokenizedLine?> GetTokenizedLinesFast(
+    StreamReader reader,
+    char separator = ';',
+    bool omitEmptyEntries = false,
+    int currentLineCounter = 0)
+    {
+        while (!reader.EndOfStream)
+        {
+            string? line = reader.ReadLine();
+            if (line is null && !omitEmptyEntries) yield return null;
+
+            currentLineCounter++;
+            yield return new TokenizedLine()
+            {
+                FromLine = currentLineCounter,
+                ToLine = currentLineCounter,
+                Tokens = [.. line!.Split(separator)],
+                IsIncomplete = false
+            };
+        }
+    }
+
+    public IEnumerable<TokenizedLine?> GetTokenizedLineFast(
+        StreamReader reader,
+        char separator = ';',
+        bool omitEmptyEntries = false,
+        int currentLineCounter = 0)
+    {
+        string? line = reader.ReadLine();
+        if (line is null && !omitEmptyEntries) yield return null;
+
+        yield return new TokenizedLine()
+        {
+            FromLine = currentLineCounter,
+            ToLine = currentLineCounter,
+            Tokens = [.. line!.Split(separator)],
+            IsIncomplete = false
         };
     }
 }
