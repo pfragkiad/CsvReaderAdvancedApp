@@ -121,10 +121,10 @@ public struct TokenizedLine
 
     //    return trimValue ? sValue.Trim() : sValue;
     //}
-    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsNull = true,bool trimValue = true) =>
+    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsNull = true, bool trimValue = true) =>
         GetString(columns[fieldName], assumeWhiteSpaceIsNull, trimValue);
 
-    public readonly string? GetString(int column,bool assumeWhiteSpaceIsNull = true, bool trimValue = true)
+    public readonly string? GetString(int column, bool assumeWhiteSpaceIsNull = true, bool trimValue = true)
     {
         string sValue = Tokens[column];
         if (trimValue) sValue = sValue.Trim();
@@ -165,7 +165,7 @@ public struct TokenizedLine
     }
 
     public readonly ParsedValue<float> GetFloat(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true) =>
-        GetFloat(columns[fieldName], info,trimValue);
+        GetFloat(columns[fieldName], info, trimValue);
 
 
     public readonly ParsedValue<float> GetFloat(int column, CultureInfo? info = null, bool trimValue = true)
@@ -181,16 +181,37 @@ public struct TokenizedLine
 
 
     public readonly ParsedValue<int> GetInt(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true)
-        => GetInt(columns[fieldName], info,trimValue);
+        => GetInt(columns[fieldName], info, trimValue);
 
     public readonly ParsedValue<int> GetInt(int column, CultureInfo? info = null, bool trimValue = true)
     {
         info ??= _en;
         string sValue = Tokens[column];
-        if (trimValue) sValue = sValue.Trim();
+        if (trimValue)
+        {
+            sValue = sValue.Trim();
+            if (sValue.EndsWith(".0")) sValue = sValue[..^2];
+        }
         if (sValue == "") return ParsedValue<int>.Null;
         bool parsed = int.TryParse(sValue, info, out int intValue);
         return parsed ? new ParsedValue<int>(intValue, sValue) : ParsedValue<int>.Unparsable(sValue);
+    }
+
+    public readonly ParsedValue<short> GetShort(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true)
+        => GetShort(columns[fieldName], info, trimValue);
+
+    public readonly ParsedValue<short> GetShort(int column, CultureInfo? info = null, bool trimValue = true)
+    {
+        info ??= _en;
+        string sValue = Tokens[column];
+        if (trimValue)
+        {
+            sValue = sValue.Trim();
+            if (sValue.EndsWith(".0")) sValue = sValue[..^2];
+        }
+        if (sValue == "") return ParsedValue<short>.Null;
+        bool parsed = short.TryParse(sValue, info, out short intValue);
+        return parsed ? new ParsedValue<short>(intValue, sValue) : ParsedValue<short>.Unparsable(sValue);
     }
 
     public readonly ParsedValue<byte> GetByte(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, bool trimValue = true) =>
@@ -200,7 +221,11 @@ public struct TokenizedLine
     {
         info ??= _en;
         string sValue = Tokens[column];
-        if (trimValue) sValue = sValue.Trim();
+        if (trimValue)
+        {
+            sValue = sValue.Trim();
+            if (sValue.EndsWith(".0")) sValue = sValue[..^2];
+        }
         if (sValue == "") return ParsedValue<byte>.Null;
         bool parsed = byte.TryParse(sValue, info, out byte byteValue);
         return parsed ? new ParsedValue<byte>(byteValue, sValue) : ParsedValue<byte>.Unparsable(sValue);
@@ -213,7 +238,11 @@ public struct TokenizedLine
     {
         info ??= _en;
         string sValue = Tokens[column];
-        if (trimValue) sValue = sValue.Trim();
+        if (trimValue)
+        {
+            sValue = sValue.Trim();
+            if (sValue.EndsWith(".0")) sValue = sValue[..^2];
+        }
         if (sValue == "") return ParsedValue<long>.Null;
         bool parsed = long.TryParse(sValue, info, out long longValue);
         return parsed ? new ParsedValue<long>(longValue, sValue) : ParsedValue<long>.Unparsable(sValue);
@@ -233,7 +262,7 @@ public struct TokenizedLine
     }
 
     public readonly ParsedValue<DateTime> GetDateTime(string fieldName, Dictionary<string, int> columns, CultureInfo? info = null, string? format = null, bool trimValue = true) =>
-        GetDateTime(columns[fieldName], info, format,trimValue);
+        GetDateTime(columns[fieldName], info, format, trimValue);
 
 
     public readonly ParsedValue<DateTime> GetDateTime(int column, CultureInfo? info = null, string? format = null, bool trimValue = true)
