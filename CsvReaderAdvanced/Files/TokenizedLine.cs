@@ -121,13 +121,14 @@ public struct TokenizedLine
 
     //    return trimValue ? sValue.Trim() : sValue;
     //}
-    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsNull = true, bool trimValue = true) =>
-        GetString(columns[fieldName], assumeWhiteSpaceIsNull, trimValue);
+    public readonly string? GetString(string fieldName, Dictionary<string, int> columns, bool assumeWhiteSpaceIsNull = true, bool trimValue = true, bool removeInvalidCharacters = true) =>
+        GetString(columns[fieldName], assumeWhiteSpaceIsNull, trimValue, removeInvalidCharacters);
 
-    public readonly string? GetString(int column, bool assumeWhiteSpaceIsNull = true, bool trimValue = true)
+    public readonly string? GetString(int column, bool assumeWhiteSpaceIsNull = true, bool trimValue = true, bool removeInvalidCharacters = true)
     {
         string sValue = Tokens[column];
         if (trimValue) sValue = sValue.Trim();
+        if (removeInvalidCharacters) sValue = sValue.Replace("�", "");
         if (sValue == "" && assumeWhiteSpaceIsNull) return null;
         return sValue;
     }

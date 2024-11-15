@@ -248,7 +248,6 @@ public abstract class CsvReaderWithSchema
     #endregion
 
 
-
     #region Boolean
 
     protected static ParsedValue<bool> CheckBoolean(
@@ -400,7 +399,8 @@ public abstract class CsvReaderWithSchema
         List<ValidationFailure> lineFailures,
         bool allowNull,
         Dictionary<string, Limit>? limitsByName = null,
-        string? limitsFieldName = null, bool trimValue = true)
+        string? limitsFieldName = null, bool trimValue = true,
+        bool removeInvalidCharacters = true)
     {
         if (!c.ContainsKey(fieldName))
         {
@@ -414,6 +414,7 @@ public abstract class CsvReaderWithSchema
 
         string value = line.Tokens[c[fieldName]];
         if (trimValue) value = value.Trim();
+        if(removeInvalidCharacters) value = value.Replace("�", "");
 
         int? maximumLength = limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].MaximumLength : null
@@ -432,11 +433,12 @@ public abstract class CsvReaderWithSchema
     List<ValidationFailure> lineFailures,
     bool allowNull,
     Dictionary<string, Limit>? limitsByName = null,
-    string? limitsFieldName = null, bool trimValue = true)
+    string? limitsFieldName = null, bool trimValue = true, bool removeInvalidCharacters = true)
     {
         limitsFieldName ??= fieldName;
 
         if (trimValue) value = value?.Trim();
+        if (removeInvalidCharacters) value = value?.Replace("�", "");
 
         int? maximumLength = limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].MaximumLength : null
@@ -748,9 +750,9 @@ public abstract class CsvReaderWithSchema
         Dictionary<string, T> collection,
         bool allowNull,
         Dictionary<string, Limit>? limitsByName = null,
-        string? limitsFieldName = null, bool trimValue = true)
+        string? limitsFieldName = null, bool trimValue = true, bool removeInvalidCharacters = true)
     {
-        string? value = CheckString(fieldName, c, line, lineFailures, allowNull, limitsByName, limitsFieldName, trimValue: trimValue);
+        string? value = CheckString(fieldName, c, line, lineFailures, allowNull, limitsByName, limitsFieldName, trimValue: trimValue, removeInvalidCharacters);
         if (value is null) return null;
 
         //if we arrive here the value is not null and an error can still occur if the value is not contained in the dictionary
@@ -766,9 +768,9 @@ public abstract class CsvReaderWithSchema
      Dictionary<string, T> collection,
      bool allowNull,
      Dictionary<string, Limit>? limitsByName = null,
-     string? limitsFieldName = null, bool trimValue = true)
+     string? limitsFieldName = null, bool trimValue = true, bool removeInvalidCharacters = true)
     {
-        string? value = CheckString(fieldName, sValue, recordNumber, lineFailures, allowNull, limitsByName, limitsFieldName, trimValue: trimValue);
+        string? value = CheckString(fieldName, sValue, recordNumber, lineFailures, allowNull, limitsByName, limitsFieldName, trimValue: trimValue, removeInvalidCharacters);
         if (value is null) return null;
 
         //if we arrive here the value is not null and an error can still occur if the value is not contained in the dictionary
@@ -786,7 +788,7 @@ public abstract class CsvReaderWithSchema
         List<ValidationFailure> lineFailures,
         Dictionary<string, T> nameCollection,
         Dictionary<int, T> idCollection,
-        bool allowNull, bool trimValue = true)
+        bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
         if (!c.ContainsKey(stringFieldName) && !c.ContainsKey(intFieldName))
         {
@@ -801,7 +803,7 @@ public abstract class CsvReaderWithSchema
         if (c.ContainsKey(intFieldName)) idToken = CheckIntId(intFieldName, c, line, lineFailures, idCollection, allowNull: true, trimValue: trimValue);
 
         //a failure will be added if the passed name is non-empty and is not included in the collection
-        if (c.ContainsKey(stringFieldName)) name = CheckStringWithId(stringFieldName, c, line, lineFailures, nameCollection, allowNull: true, trimValue: trimValue);
+        if (c.ContainsKey(stringFieldName)) name = CheckStringWithId(stringFieldName, c, line, lineFailures, nameCollection, allowNull: true, trimValue: trimValue, removeInvalidCharacters: removeInvalidCharacters);
         if (name is not null && !nameCollection.ContainsKey(name)) return null;
 
         if (name is null && idToken.IsNull)
@@ -826,10 +828,10 @@ public abstract class CsvReaderWithSchema
       TokenizedLine l,
       List<ValidationFailure> lineFailures,
       Dictionary<string, T> collectionByName,
-      bool allowNull, bool trimValue = true)
+      bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
         if (!c.ContainsKey(fieldName)) return null;
-        string? name = CheckStringWithId(fieldName, c, l, lineFailures, collectionByName, allowNull, trimValue: trimValue);
+        string? name = CheckStringWithId(fieldName, c, l, lineFailures, collectionByName, allowNull, trimValue: trimValue, removeInvalidCharacters:removeInvalidCharacters);
         if (name is null) return null;
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
@@ -838,9 +840,9 @@ public abstract class CsvReaderWithSchema
      string fieldName, string? value, int recordNumber,
      List<ValidationFailure> lineFailures,
      Dictionary<string, T> collectionByName,
-     bool allowNull, bool trimValue = true)
+     bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
-        string? name = CheckStringWithId(fieldName, value, recordNumber, lineFailures, collectionByName, allowNull, trimValue: trimValue);
+        string? name = CheckStringWithId(fieldName, value, recordNumber, lineFailures, collectionByName, allowNull, trimValue: trimValue, removeInvalidCharacters:removeInvalidCharacters);
         if (name is null) return null;
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
@@ -848,29 +850,26 @@ public abstract class CsvReaderWithSchema
 
     protected static int? GetIdByName<T>(
         string fieldName,
-
         Dictionary<string, int> columns, TokenizedLine line,
 
         List<ValidationFailure> failures,
         List<Dictionary<string, T>> collectionsByName,
-        bool allowNull, bool trimValue = true)
+        bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
         if (!columns.TryGetValue(fieldName, out int column)) return null;
         string? value = line.GetString(column, trimValue: trimValue);
 
-        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Line: {line.FromLine}", trimValue: trimValue);
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Line: {line.FromLine}", trimValue: trimValue, removeInvalidCharacters:removeInvalidCharacters);
     }
 
     protected static int? GetIdByName<T>(
     string fieldName,
-
     string? value, int recordNumber,
-
     List<ValidationFailure> failures,
     List<Dictionary<string, T>> collectionsByName,
-    bool allowNull, bool trimValue = true)
+    bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
-        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Record: {recordNumber}", trimValue: trimValue);
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Record: {recordNumber}", trimValue: trimValue,removeInvalidCharacters:removeInvalidCharacters);
     }
 
 
@@ -880,7 +879,7 @@ public abstract class CsvReaderWithSchema
         List<ValidationFailure> failures,
         List<Dictionary<string, T>> collectionsByName,
         bool allowNull,
-        string reportLocation, bool trimValue = true)
+        string reportLocation, bool trimValue = true, bool removeInvalidCharacters = true)
     {
         if (sValue is null)
         {
@@ -889,6 +888,7 @@ public abstract class CsvReaderWithSchema
             return null;
         }
         if (trimValue) sValue = sValue.Trim();
+        if (removeInvalidCharacters) sValue = sValue.Replace("�", "");
 
         int? id = collectionsByName
             .Where(c => c.ContainsKey(sValue))
