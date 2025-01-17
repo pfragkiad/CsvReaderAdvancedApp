@@ -204,7 +204,7 @@ public abstract class CsvReaderWithSchema
         if (value.HasValue && !idCollection.ContainsKey(value.Value))
             lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} '{value}' was not found. Record: {recordNumber}.", AttemptedValue = value });
     }
-    
+
     protected static int? GetId<T>(
           string stringFieldName,
           Dictionary<string, int> c, TokenizedLine line,
@@ -218,7 +218,7 @@ public abstract class CsvReaderWithSchema
             if (!allowNull) failures.Add(new ValidationFailure() { PropertyName = stringFieldName, ErrorMessage = $"The {stringFieldName} field does not exist. Line: {line.FromLine}." });
             return null;
         }
-        return GetId(stringFieldName, line.GetString(c[stringFieldName], trimValue: trimValue), failures, allowNull, GetItemFunction, $"Line: {line.FromLine}",trimValue:trimValue);
+        return GetId(stringFieldName, line.GetString(c[stringFieldName], trimValue: trimValue), failures, allowNull, GetItemFunction, $"Line: {line.FromLine}", trimValue: trimValue);
     }
 
     protected static int? GetId<T>(
@@ -414,7 +414,7 @@ public abstract class CsvReaderWithSchema
 
         string value = line.Tokens[c[fieldName]];
         if (trimValue) value = value.Trim();
-        if(removeInvalidCharacters) value = value.Replace("�", "");
+        if (removeInvalidCharacters) value = value.Replace("�", "");
 
         int? maximumLength = limitsByName is not null ?
             limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].MaximumLength : null
@@ -451,7 +451,7 @@ public abstract class CsvReaderWithSchema
 
         return string.IsNullOrWhiteSpace(value) ? null : value;
     }
-    
+
     #endregion
 
     #region Double
@@ -529,6 +529,7 @@ public abstract class CsvReaderWithSchema
             : null;
         //var valueToken = line.GetDouble(fieldName, c);
         ParsedValue<double> valueToken = GetDouble(sValue, trimValue: trimValue);
+
         if (valueToken.IsNull)
         {
             if (!allowNull)
@@ -591,8 +592,158 @@ public abstract class CsvReaderWithSchema
         if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<double>.Null;
         bool parsed = double.TryParse(sValue, info, out var doubleValue);
+        if (parsed && (double.IsInfinity(doubleValue) || double.IsNaN(doubleValue))) return ParsedValue<double>.NaN(sValue);
+
         return parsed ? new ParsedValue<double>(doubleValue, sValue) : ParsedValue<double>.Unparsable(sValue);
     }
+
+    #endregion
+
+
+    #region Float
+    protected static ParsedValue<float> CheckFloat(
+    string fieldName,
+    Dictionary<string, int> c,
+    TokenizedLine line,
+    List<ValidationFailure> lineFailures,
+    bool allowNull,
+    Dictionary<string, Limit>? limitsByName = null,
+    string? limitsFieldName = null, bool trimValue = true)
+    {
+        if (!c.ContainsKey(fieldName))
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} field is missing. Line: {line.FromLine}." });
+
+            return ParsedValue<float>.Null;
+
+        }
+
+        limitsFieldName ??= fieldName;
+        double? minimumLimit =
+            limitsByName is not null ?
+            limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Minimum : null
+            : null;
+        double? maximumLimit =
+            limitsByName is not null ?
+            limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
+            : null;
+        //var valueToken = line.GetDouble(fieldName, c);
+        ParsedValue<float> valueToken = line.GetFloat(fieldName, c, trimValue: trimValue);
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
+        if (!valueToken.IsParsed)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+        else if (
+            minimumLimit.HasValue && maximumLimit.HasValue &&
+            (valueToken.Value < minimumLimit || valueToken.Value > maximumLimit))
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is out of range (range allowed: {minimumLimit} to {maximumLimit}). Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+        else if (
+            minimumLimit.HasValue && valueToken.Value < minimumLimit)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is lower than {minimumLimit}. Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+        else if (
+            maximumLimit.HasValue && valueToken.Value > maximumLimit)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is greater than {maximumLimit}). Line: {line.FromLine}.", AttemptedValue = valueToken.StringValue });
+
+        return valueToken;
+    }
+
+
+
+    protected static ParsedValue<float> CheckFloat(
+    string fieldName, string sValue, int recordNumber,
+    List<ValidationFailure> lineFailures,
+    bool allowNull,
+    Dictionary<string, Limit>? limitsByName = null,
+    string? limitsFieldName = null, bool trimValue = true)
+    {
+
+        limitsFieldName ??= fieldName;
+        double? minimumLimit =
+            limitsByName is not null ?
+            limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Minimum : null
+            : null;
+        double? maximumLimit =
+            limitsByName is not null ?
+            limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
+            : null;
+        //var valueToken = line.GetDouble(fieldName, c);
+        ParsedValue<float> valueToken = GetFloat(sValue, trimValue: trimValue);
+
+        if (valueToken.IsNull)
+        {
+            if (!allowNull)
+                lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+            return valueToken;
+        }
+
+        if (!valueToken.IsParsed)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} has bad format. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+        else if (
+            minimumLimit.HasValue && maximumLimit.HasValue &&
+            (valueToken.Value < minimumLimit || valueToken.Value > maximumLimit))
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is out of range (range allowed: {minimumLimit} to {maximumLimit}). Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+        else if (
+            minimumLimit.HasValue && valueToken.Value < minimumLimit)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is lower than {minimumLimit}. Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+        else if (
+            maximumLimit.HasValue && valueToken.Value > maximumLimit)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is greater than {maximumLimit}). Record: {recordNumber}.", AttemptedValue = valueToken.StringValue });
+
+        return valueToken;
+    }
+
+
+    protected static void CheckFloat(
+        string fieldName, float? value, int recordNumber,
+        List<ValidationFailure> lineFailures,
+        bool allowNull,
+        Dictionary<string, Limit>? limitsByName = null,
+        string? limitsFieldName = null)
+    {
+
+        limitsFieldName ??= fieldName;
+        double? minimumLimit =
+            limitsByName is not null ?
+            limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Minimum : null
+            : null;
+        double? maximumLimit =
+            limitsByName is not null ?
+            limitsByName.ContainsKey(limitsFieldName) ? limitsByName[limitsFieldName].Maximum : null
+            : null;
+        //var valueToken = line.GetDouble(fieldName, c);
+        if (value is null && !allowNull)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is empty. Record: {recordNumber}.", AttemptedValue = value });
+        else if (
+            minimumLimit.HasValue && maximumLimit.HasValue &&
+            (value < minimumLimit || value > maximumLimit))
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is out of range (range allowed: {minimumLimit} to {maximumLimit}). Record: {recordNumber}.", AttemptedValue = value });
+        else if (
+            minimumLimit.HasValue && value < minimumLimit)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is lower than {minimumLimit}. Record: {recordNumber}.", AttemptedValue = value });
+        else if (
+            maximumLimit.HasValue && value > maximumLimit)
+            lineFailures.Add(new ValidationFailure() { PropertyName = fieldName, ErrorMessage = $"{fieldName} is greater than {maximumLimit}). Record: {recordNumber}.", AttemptedValue = value });
+
+    }
+
+
+    public static ParsedValue<float> GetFloat(string sValue, CultureInfo? info = null, bool trimValue = true)
+    {
+        info ??= _en;
+        if (trimValue) sValue = sValue.Trim();
+        if (sValue == "") return ParsedValue<float>.Null;
+        bool parsed = float.TryParse(sValue, info, out var floatValue);
+        if (parsed && (float.IsInfinity(floatValue) || float.IsNaN(floatValue))) return ParsedValue<float>.NaN(sValue);
+
+        return parsed ? new ParsedValue<float>(floatValue, sValue) : ParsedValue<float>.Unparsable(sValue);
+    }
+
 
     #endregion
 
@@ -603,7 +754,7 @@ public abstract class CsvReaderWithSchema
         if (trimValue)
         {
             sValue = sValue.Trim();
-            if(sValue.EndsWith(".0")) sValue = sValue[..^2];
+            if (sValue.EndsWith(".0")) sValue = sValue[..^2];
         }
         if (sValue == "") return ParsedValue<int>.Null;
         bool parsed = int.TryParse(sValue, info, out int intValue);
@@ -831,7 +982,7 @@ public abstract class CsvReaderWithSchema
       bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
         if (!c.ContainsKey(fieldName)) return null;
-        string? name = CheckStringWithId(fieldName, c, l, lineFailures, collectionByName, allowNull, trimValue: trimValue, removeInvalidCharacters:removeInvalidCharacters);
+        string? name = CheckStringWithId(fieldName, c, l, lineFailures, collectionByName, allowNull, trimValue: trimValue, removeInvalidCharacters: removeInvalidCharacters);
         if (name is null) return null;
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
@@ -842,7 +993,7 @@ public abstract class CsvReaderWithSchema
      Dictionary<string, T> collectionByName,
      bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
-        string? name = CheckStringWithId(fieldName, value, recordNumber, lineFailures, collectionByName, allowNull, trimValue: trimValue, removeInvalidCharacters:removeInvalidCharacters);
+        string? name = CheckStringWithId(fieldName, value, recordNumber, lineFailures, collectionByName, allowNull, trimValue: trimValue, removeInvalidCharacters: removeInvalidCharacters);
         if (name is null) return null;
         return collectionByName.ContainsKey(name!) ? (collectionByName[name!] as dynamic)!.Id : null;
     }
@@ -859,7 +1010,7 @@ public abstract class CsvReaderWithSchema
         if (!columns.TryGetValue(fieldName, out int column)) return null;
         string? value = line.GetString(column, trimValue: trimValue);
 
-        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Line: {line.FromLine}", trimValue: trimValue, removeInvalidCharacters:removeInvalidCharacters);
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Line: {line.FromLine}", trimValue: trimValue, removeInvalidCharacters: removeInvalidCharacters);
     }
 
     protected static int? GetIdByName<T>(
@@ -869,7 +1020,7 @@ public abstract class CsvReaderWithSchema
     List<Dictionary<string, T>> collectionsByName,
     bool allowNull, bool trimValue = true, bool removeInvalidCharacters = true)
     {
-        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Record: {recordNumber}", trimValue: trimValue,removeInvalidCharacters:removeInvalidCharacters);
+        return GetIdByName(fieldName, value, failures, collectionsByName, allowNull, $"Record: {recordNumber}", trimValue: trimValue, removeInvalidCharacters: removeInvalidCharacters);
     }
 
 
@@ -910,7 +1061,7 @@ public abstract class CsvReaderWithSchema
         if (trimValue)
         {
             sValue = sValue.Trim();
-            if(sValue.EndsWith(".0")) sValue = sValue[..^2];
+            if (sValue.EndsWith(".0")) sValue = sValue[..^2];
         }
         if (sValue == "") return ParsedValue<short>.Null;
         bool parsed = short.TryParse(sValue, info, out short intValue);

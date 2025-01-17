@@ -162,6 +162,7 @@ public struct TokenizedLine
         if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<double>.Null;
         bool parsed = double.TryParse(sValue, info, out var doubleValue);
+        if(parsed && (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue))) return ParsedValue<double>.NaN(sValue);
         return parsed ? new ParsedValue<double>(doubleValue, sValue) : ParsedValue<double>.Unparsable(sValue);
     }
 
@@ -176,6 +177,7 @@ public struct TokenizedLine
         if (trimValue) sValue = sValue.Trim();
         if (sValue == "") return ParsedValue<float>.Null;
         bool parsed = float.TryParse(sValue, info, out var floatValue);
+        if (parsed && (float.IsNaN(floatValue) || float.IsInfinity(floatValue))) return ParsedValue<float>.NaN(sValue);
         return parsed ? new ParsedValue<float>(floatValue, sValue) : ParsedValue<float>.Unparsable(sValue);
     }
 

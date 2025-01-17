@@ -1,10 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Microsoft.Extensions.Primitives;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace CsvReaderAdvanced.Schemas;
 
 //public struct Unparsable { public static Unparsable Default = new Unparsable(); }
-public enum ParseState { Unknown, Parsed, Unparsable, Null }
+public enum ParseState { Unknown, Parsed, Unparsable, NaN, Null }
 
 
 public readonly struct ParsedValue<T> where T : struct
@@ -16,6 +17,8 @@ public readonly struct ParsedValue<T> where T : struct
 
     public bool IsParsed => State == ParseState.Parsed;
     public bool IsNull => State == ParseState.Null;
+
+    public bool IsNaN => State == ParseState.NaN;
 
     public string StringValue { get; init; } = default!;
 
@@ -41,8 +44,10 @@ public readonly struct ParsedValue<T> where T : struct
     }
 
     public static ParsedValue<T> Unparsable(string stringValue) => new() { State = ParseState.Unparsable, StringValue = stringValue  };
+    public static ParsedValue<T> NaN(string stringValue) => new(){ State = ParseState.NaN, StringValue   = stringValue };
 
     public static readonly ParsedValue<T> Null = new() { State = ParseState.Null };
+
 
     public override string ToString()
     {
