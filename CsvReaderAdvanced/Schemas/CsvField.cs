@@ -7,13 +7,13 @@ public class CsvField
 
     public bool Required { get; init; } = false;
 
-    public string[] Alternatives { get; init; } = Array.Empty<string>();
+    public HashSet<string> Alternatives { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-    public string[] AlternativeFields { get; init; } = Array.Empty<string>();
+    public HashSet<string> AlternativeFields { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public string? Unit { get; init; }
 
-    public string[] AlternativeUnits { get; init; } = Array.Empty<string>();
+    public HashSet<string> AlternativeUnits { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public HashSet<string> GetCandidateNames(bool ignoreAlternativeUnits)
     {

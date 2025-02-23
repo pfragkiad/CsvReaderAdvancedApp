@@ -2,9 +2,7 @@
 
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Text;
@@ -84,6 +82,11 @@ public abstract class CsvReaderWithSchema
         return result;
     }
 
+    public void CheckAgainstExistingSchema()
+    {
+        if (CsvSchema is null || _file is null) return;
+        _file.CheckAgainstSchema(CsvSchema);
+    }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public virtual async Task<ReaderReport> Import(string filePath)
@@ -126,6 +129,17 @@ public abstract class CsvReaderWithSchema
             };
 
         return ReaderReport.DefaultValid;
+    }
+
+    public void AddCustomAlternatives(string fieldName, params string[] alternatives)
+    {
+        if (CsvSchema is null) return;
+
+        CsvField? field = CsvSchema.Fields!.Cast<CsvField?>().FirstOrDefault(f => f!.Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
+        if (field is null) return;
+
+        foreach (string alternative in alternatives)
+            field.Alternatives.Add(alternative);
     }
 
     #region Check functions
