@@ -34,6 +34,9 @@ namespace CsvWinAnalyzer
         }
 
         List<CsvFieldTypeInfo> _items = new();
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public List<CsvFieldTypeInfo> SelectedHeaders
         {
             get => _items;
@@ -45,7 +48,12 @@ namespace CsvWinAnalyzer
             }
         }
 
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string? SourcePath { get; internal set; }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Encoding? Encoding { get; internal set; }
 
         //TODO: Move update create table functionality within the CSVLIb
